@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class SessionAttendance extends Model
+{
+    protected $table = 'session_attendance';
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'student_id',
+        'session_id',
+        'checked_in_on',
+        'checked_in_at',
+    ];
+}
