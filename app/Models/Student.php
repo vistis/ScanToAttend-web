@@ -16,19 +16,19 @@ class Student extends Model
         'fingerprint_id',
         'first_name',
         'last_name',
+        'profile_picture',
         'email',
         'password',
     ];
 
     protected $hidden = [
-        'fingerprint_id',
+        // 'fingerprint_id',
         'password',
         'remember_token',
     ];
 
     protected function casts(): array {
         return [
-            'fingerprint_id' => 'hashed',
             'password' => 'hashed',
         ];
     }
