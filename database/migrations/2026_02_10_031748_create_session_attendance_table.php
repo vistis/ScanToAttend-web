@@ -16,9 +16,9 @@ return new class extends Migration
         Schema::create('session_attendance', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('student_id');
-            $table->foreign('student_id')->references('id')->on('students');
+            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->bigInteger('session_id');
-            $table->foreign('session_id')->references('id')->on('class_sessions');
+            $table->foreign('session_id')->references('id')->on('class_sessions')->onDelete('cascade');
             $table->date('checked_in_on');
             $table->time('checked_in_at');
         });

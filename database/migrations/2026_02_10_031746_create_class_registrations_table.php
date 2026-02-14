@@ -16,9 +16,9 @@ return new class extends Migration
         Schema::create('class_registrations', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('student_id');
-            $table->foreign('student_id')->references('id')->on('students');
+            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->bigInteger('class_id');
-            $table->foreign('class_id')->references('id')->on('classes');
+            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
         });
 
         Schema::enableForeignKeyConstraints();

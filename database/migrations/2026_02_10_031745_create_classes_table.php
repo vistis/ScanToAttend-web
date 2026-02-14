@@ -15,10 +15,10 @@ return new class extends Migration
 
         Schema::create('classes', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('instructor_id');
-            $table->foreign('instructor_id')->references('id')->on('instructors');
+            $table->bigInteger('instructor_id')->nullable();
+            $table->foreign('instructor_id')->references('id')->on('instructors')->onDelete('set null');
             $table->string('course_id');
-            $table->foreign('course_id')->references('id')->on('courses');
+            $table->foreign('course_id')->references('id')->on('courses')->onDelete('cascade');
             $table->smallInteger('section');
             $table->timestamps();
         });

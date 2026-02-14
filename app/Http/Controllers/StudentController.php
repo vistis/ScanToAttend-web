@@ -21,13 +21,14 @@ class StudentController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'profile_picture' => ['required', 'image', 'max:2048'],
             'email' => ['required', 'email', 'max:255', 'unique:students,email'],
-            'password' => ['required', Password::defaults()],
+            'password' => ['required', Password::defaults()]
         ]);
 
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->messages(),
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
             ], 400);
         }
 
@@ -44,8 +45,8 @@ class StudentController extends Controller
         $account->profile_picture = Storage::url($account->profile_picture);
 
         return response()->json([
-            'message' => "New student registered.",
-            'account' => $account,
+            'message' => "Student registered.",
+            'student' => $account
         ], 200);
     }
 
@@ -53,13 +54,14 @@ class StudentController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'email', 'max:255', 'exists:students,email'],
-            'password' => ['required', Password::defaults()],
+            'password' => ['required', Password::defaults()]
         ]);
 
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->messages(),
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
             ], 400);
         }
 
@@ -67,14 +69,19 @@ class StudentController extends Controller
         $data = $validator->validated();
 
         // Grab password
-        $password = $data->string('password')->toString();
+        $password = $data['password'];
 
         // Try to authenticate
-        $student = Student::where('email', $data->email)->first();
+        $student = Student::where('email', $data['email'])->first();
         if (!Hash::check($password, $student->password)) {
             // Failed to authenticate
             return response()->json([
-                'errors' => "Password is invalid",
+                'message' => "Errors detected.",
+                'errors' => [
+                    'password' => [
+                        "The provided password is invalid."
+                    ]
+                ]
             ], 400);
         }
 
@@ -83,22 +90,23 @@ class StudentController extends Controller
 
         // Authentication attempt successful
         return response()->json([
-            'message' => "Logged in as student",
+            'message' => "Logged in as student.",
             'account' => $student,
-            'token' => $student->createToken('student-api')->plainTextToken, // Generate token
+            'token' => $student->createToken('student-api')->plainTextToken // Generate token
         ], 200);
     }
 
     public function readOne(Request $request) {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['required', 'integer', 'exists:students,id'],
+            'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->messages(),
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
             ], 400);
         }
 
@@ -106,33 +114,114 @@ class StudentController extends Controller
         $data = $validator->validated();
 
         // Database query
-        $student = $students = Student::where('id', $data['id'])
-            ->select('id', 'first_name', 'last_name', 'profile_picture', 'email',)
-            ->first();
+        $account = $students = Student::find($data['id']);
 
         // Generate image URL
-        $student->profile_picture = Storage::url($student->profile_picture);
+        $account->profile_picture = Storage::url($account->profile_picture);
 
         // JSON Response
         return response()->json([
-            'student' => $student,
+            'message' => "Student information retrieved.",
+            'student' => $account
         ], 200);
     }
 
     public function readAll() : JsonResponse {
         // Database query
-        $students = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email',)
+        $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
             ->orderByDesc('first_name')
             ->get();
 
         // Generate URL for profile picture
-        foreach ($students as $student) {
-            $student->profile_picture = Storage::url($student->profile_picture);
+        foreach ($accounts as $account) {
+            $account->profile_picture = Storage::url($account->profile_picture);
         }
 
         // JSON Response
         return response()->json([
-            'students' => $students,
+            'meesage' => "Students information retrieved",
+            'students' => $accounts
+        ], 200);
+    }
+
+    public function update(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:students,id'],
+            'fingerprint_id' => ['integer', 'unique:students,fingerprint_id'],
+            'first_name' => ['string', 'max:255'],
+            'last_name' => ['string', 'max:255'],
+            'profile_picture' => ['image', 'max:2048'],
+            'email' => ['email', 'max:255', 'unique:students,email'],
+            'password' => [Password::defaults()]
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // If the request contain a new profile picture
+        if ($request->hasFile('profile_picture')) {
+            // Store new picture
+            $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), time() . '.' . $request->profile_picture->extension());
+
+            // Delete old picture
+            Storage::delete(Student::find($data['id'])->profile_picture);
+        }
+
+        // Update student account
+        Student::where('id', $data['id'])
+            ->update($data);
+
+        // Get the information of the new account
+        $account = Student::find($data['id']);
+
+        // Generate profile picture URL
+        $account->profile_picture = Storage::url($account->profile_picture);
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Student account updated.",
+            'student' => $account
+        ], 200);
+    }
+
+    public function delete(Request $request) {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:students,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Get the account
+        $account = Student::find($data['id']);
+
+        // Delete profile picture file
+        Storage::delete($account->profile_picture);
+
+        // Delete account from database
+        $account->delete();
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Student deleted."
         ], 200);
     }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('class_sessions', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('class_id');
-            $table->foreign('class_id')->references('id')->on('classes');
+            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->enum('day', ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]);
             $table->time('start_at');
             $table->time('end_at');

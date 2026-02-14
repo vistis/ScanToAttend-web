@@ -10,16 +10,16 @@ use App\Models\ClassRegistration;
 
 class ClassRegistrationController extends Controller
 {
-    public function resolve(Request $request) : JsonResponse {
+    public function readClass(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['string', 'in:classes,id'],
+            'id' => ['string', 'in:classes,id']
         ]);
 
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->messages(),
+                'errors' => $validator->messages()
             ], 400);
         }
 
@@ -37,7 +37,8 @@ class ClassRegistrationController extends Controller
 
         // JSON Response
         return response()->json([
-            'students' => $students,
+            'message' => "Fetched students list of requested class.",
+            'students' => $students
         ], 200);
     }
 }

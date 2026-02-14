@@ -25,7 +25,8 @@ class SessionAttendanceController extends Controller
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->messages(),
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
             ], 400);
         }
 
@@ -43,9 +44,14 @@ class SessionAttendanceController extends Controller
             ->first()
             ->id;
 
-        if ($sessionId) {
+        if ($studentId) {
             return response()->json([
-                'errors' => "Cannot resolve fingerprint to a registered student",
+                'message' => "Errors detected.",
+                'errors' => [
+                    'fingerprint_id' => [
+                        "Cannot resolve fingerprint to a registered student"
+                    ]
+                ]
             ], 400);
         }
 
@@ -62,7 +68,12 @@ class SessionAttendanceController extends Controller
 
         if (!$sessionId) {
             return response()->json([
-                'errors' => "Failed to record. No session to attend right now",
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class_sessions' => [
+                        "Failed to record. No session to attend right now."
+                    ]
+                ]
             ], 400);
         }
 
@@ -73,7 +84,12 @@ class SessionAttendanceController extends Controller
             ->exists()
         ) {
             return response()->json([
-                'errors' => "Already checked in for this session",
+                'message' => "Errors detected.",
+                'errors' => [
+                    'session_attendance' => [
+                        "Already checked in for this session"
+                    ]
+                ]
             ], 400);
         }
 
