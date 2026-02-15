@@ -18,18 +18,18 @@ class Student extends Model
         'last_name',
         'profile_picture',
         'email',
-        'password',
+        'password'
     ];
 
     protected $hidden = [
-        // 'fingerprint_id',
+        'fingerprint_id',
         'password',
-        'remember_token',
+        'remember_token'
     ];
 
     protected function casts(): array {
         return [
-            'password' => 'hashed',
+            'password' => 'hashed'
         ];
     }
 }

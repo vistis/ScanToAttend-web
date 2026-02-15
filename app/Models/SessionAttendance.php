@@ -14,5 +14,6 @@ class SessionAttendance extends Model
         'session_id',
         'checked_in_on',
         'checked_in_at',
+        'status'
     ];
 }

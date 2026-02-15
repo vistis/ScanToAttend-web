@@ -11,6 +11,6 @@ class ClassRegistration extends Model
 
     protected $fillable = [
         'student_id',
-        'class_id',
+        'class_id'
     ];
 }

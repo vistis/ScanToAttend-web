@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Student;
 
@@ -47,52 +45,6 @@ class StudentController extends Controller
         return response()->json([
             'message' => "Student registered.",
             'student' => $account
-        ], 200);
-    }
-
-    public function authenticate(Request $request) : JsonResponse {
-        // Validate request
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email', 'max:255', 'exists:students,email'],
-            'password' => ['required', Password::defaults()]
-        ]);
-
-        // Return error message if the validation fails
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
-            ], 400);
-        }
-
-        // Get the validated data
-        $data = $validator->validated();
-
-        // Grab password
-        $password = $data['password'];
-
-        // Try to authenticate
-        $student = Student::where('email', $data['email'])->first();
-        if (!Hash::check($password, $student->password)) {
-            // Failed to authenticate
-            return response()->json([
-                'message' => "Errors detected.",
-                'errors' => [
-                    'password' => [
-                        "The provided password is invalid."
-                    ]
-                ]
-            ], 400);
-        }
-
-        // Generate image URL
-        $student->profile_picture = Storage::url($student->profile_picture);
-
-        // Authentication attempt successful
-        return response()->json([
-            'message' => "Logged in as student.",
-            'account' => $student,
-            'token' => $student->createToken('student-api')->plainTextToken // Generate token
         ], 200);
     }
 

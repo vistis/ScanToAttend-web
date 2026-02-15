@@ -17,17 +17,17 @@ class Admin extends Model
         'last_name',
         'email',
         'profile_picture',
-        'password',
+        'password'
     ];
 
     protected $hidden = [
         'password',
-        'remember_token',
+        'remember_token'
     ];
 
     protected function casts(): array {
         return [
-            'password' => 'hashed',
+            'password' => 'hashed'
         ];
     }
 }

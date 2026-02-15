@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreign('session_id')->references('id')->on('class_sessions')->onDelete('cascade');
             $table->date('checked_in_on');
             $table->time('checked_in_at');
+            $table->enum('status', ["Present","Tardy"]);
         });
 
         Schema::enableForeignKeyConstraints();

@@ -13,6 +13,6 @@ class ClassSession extends Model
         'class_id',
         'day',
         'start_at',
-        'end_at',
+        'end_at'
     ];
 }
