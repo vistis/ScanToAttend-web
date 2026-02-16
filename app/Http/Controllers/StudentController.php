@@ -12,6 +12,7 @@ use App\Models\Username;
 
 class StudentController extends Controller
 {
+    /* RGISTER STUDENT */
     public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
@@ -69,7 +70,27 @@ class StudentController extends Controller
         ], 200);
     }
 
-    public function readOne(Request $request) {
+    /* STUDENT LIST */
+    public function readAll() : JsonResponse {
+        // Database query
+        $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
+            ->orderByDesc('first_name')
+            ->get();
+
+        // Generate URL for profile picture
+        foreach ($accounts as $account) {
+            $account->profile_picture = Storage::url($account->profile_picture);
+        }
+
+        // JSON Response
+        return response()->json([
+            'meesage' => "Students list retrieved.",
+            'students' => $accounts
+        ], 200);
+    }
+
+    /* STUDENT INFORMATION */
+    public function readOne(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id']
@@ -94,29 +115,12 @@ class StudentController extends Controller
 
         // JSON Response
         return response()->json([
-            'message' => "Student information retrieved.",
+            'message' => "Student list retrieved.",
             'student' => $account
         ], 200);
     }
 
-    public function readAll() : JsonResponse {
-        // Database query
-        $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
-            ->orderByDesc('first_name')
-            ->get();
-
-        // Generate URL for profile picture
-        foreach ($accounts as $account) {
-            $account->profile_picture = Storage::url($account->profile_picture);
-        }
-
-        // JSON Response
-        return response()->json([
-            'meesage' => "Students information retrieved",
-            'students' => $accounts
-        ], 200);
-    }
-
+    /* UPDATE STUDENT */
     public function update(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
@@ -160,11 +164,12 @@ class StudentController extends Controller
 
         // Respond as JSON
         return response()->json([
-            'message' => "Student account updated.",
+            'message' => "Student updated.",
             'student' => $account
         ], 200);
     }
 
+    /* DELETE STUDENT */
     public function delete(Request $request) {
         // Validate request
         $validator = Validator::make($request->all(), [
@@ -193,7 +198,8 @@ class StudentController extends Controller
 
         // Respond as JSON
         return response()->json([
-            'message' => "Student deleted."
+            'message' => "Student deleted.",
+            'student' => $account
         ], 200);
     }
 }
