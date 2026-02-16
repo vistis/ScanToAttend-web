@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('fingerprint_id')->unique();
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('username');
             $table->string('profile_picture');
             $table->string('email')->unique();
             $table->string('password');

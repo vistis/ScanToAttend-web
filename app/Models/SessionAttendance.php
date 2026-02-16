@@ -8,6 +8,7 @@ class SessionAttendance extends Model
 {
     protected $table = 'session_attendance';
     protected $primaryKey = 'id';
+    public $timestamps = false;
 
     protected $fillable = [
         'student_id',

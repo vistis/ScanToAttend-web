@@ -17,7 +17,7 @@ class TokenController extends Controller
     public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
             'password' => ['required', Password::defaults()]
         ]);
 
@@ -32,16 +32,16 @@ class TokenController extends Controller
         // Get the validated data
         $data = $validator->validated();
 
-        // Check if the email is a registered account
+        // Check if the username is a registered account
         // Try student
-        $query = Student::where('email', $data['email']);
+        $query = Student::where('username', $data['username']);
         if ($query->exists()) {
             $account = $query->first();
             $guard = 'student-api';
         }
         else {
             // Try instructor
-            $query = Instructor::where('email', $data['email']);
+            $query = Instructor::where('username', $data['username']);
             if ($query->exists()) {
                 $account = $query->first();
                 $guard = 'instructor-api';
@@ -49,19 +49,19 @@ class TokenController extends Controller
 
             else {
                 // Try admin
-                $query = Admin::where('email', $data['email']);
+                $query = Admin::where('username', $data['username']);
                 if ($query->exists()) {
                     $account = $query->first();
                     $guard = 'admin-api';
                 }
 
-                // Email is invalid
+                // username is invalid
                 else {
                     return response()->json([
                         'message' => "Errors detected.",
                         'errors' => [
-                            'email' => [
-                                "The provided email is invalid."
+                            'username' => [
+                                "The provided username is invalid."
                             ]
                         ]
                     ], 400);

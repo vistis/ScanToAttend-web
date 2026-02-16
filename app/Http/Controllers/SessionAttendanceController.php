@@ -18,8 +18,7 @@ class SessionAttendanceController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'fingerprint_id' => ['required', 'integer', 'exists:students,fingerprint_id'],
-            'checked_in_on' => ['required', 'date', 'date_format:Y-m-d'],
-            'checked_in_at' => ['required', 'date_format:H:i:s']
+            'scanned_at' => ['required', 'date']
         ]);
 
         // Return error message if the validation fails
@@ -34,9 +33,10 @@ class SessionAttendanceController extends Controller
         $fingerprint = $validator->validated()['fingerprint_id'];
 
         // Get day, date, and time
-        $checkedInOn = Carbon::parse($validator->validated()['checked_in_on']);
-        $checkedInAt = Carbon::parse($validator->validated()['checked_in_at']);
-        $day = $checkedInOn->englishDayOfWeek;
+        $scannedAt = Carbon::parse($validator->validated()['scanned_at']);
+        $checkedInOn = $scannedAt->toDateString();
+        $checkedInAt = $scannedAt->toTimeString();
+        $day = $scannedAt->englishDayOfWeek;
 
         // Resolve the student information
         $studentId = Student::where('fingerprint_id', $fingerprint)
@@ -110,7 +110,7 @@ class SessionAttendanceController extends Controller
         $classInfo = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->where('classes.class_id', $session->class_id)
             ->where('classes.course_id', $courseId)
-            ->select('courses.id as code', 'courses.name as name', 'classes.section as section', 'classes.start_at as from', 'classes.end_at as to')
+            ->select('courses.code as code', 'courses.name as name', 'classes.section as section', 'classes.start_at as from', 'classes.end_at as to')
             ->first();
 
         // Determine the status

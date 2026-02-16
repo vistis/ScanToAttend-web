@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('instructor_id')->nullable();
             $table->foreign('instructor_id')->references('id')->on('instructors')->onDelete('set null');
-            $table->string('course_id');
+            $table->bigInteger('course_id');
             $table->foreign('course_id')->references('id')->on('courses')->onDelete('cascade');
             $table->smallInteger('section');
             $table->timestamps();

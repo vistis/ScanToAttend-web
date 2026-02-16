@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\SessionAttendanceController;
+use App\Http\Controllers\EmailController;
 
 /* TOKEN AUTHENTICATION */
 Route::post('/login', [TokenController::class, 'create'])->name('login');
@@ -15,3 +16,5 @@ Route::delete('/student/delete', [StudentController::class, 'delete'])->name('st
 Route::get('/student/list', [StudentController::class, 'readAll'])->name('student.list');
 Route::get('/student', [StudentController::class, 'readOne'])->name('student');
 Route::post('/student/check-in', [SessionAttendanceController::class, 'create'])->name('student.register');
+
+Route::patch('/email/update', [EmailController::class, 'updateAll'])->name('email.updateAll');

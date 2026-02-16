@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->bigInteger('class_id');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
+            $table->timestamps();
         });
 
         Schema::enableForeignKeyConstraints();

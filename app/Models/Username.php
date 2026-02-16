@@ -4,14 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Course extends Model
+class Username extends Model
 {
-    protected $table = 'courses';
+    protected $table = 'usernames';
     protected $primaryKey = 'id';
-    public $incrementing = false;
 
     protected $fillable = [
-        'code',
-        'name'
+        'initial',
+        'count'
     ];
 }

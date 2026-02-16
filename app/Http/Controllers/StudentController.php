@@ -8,6 +8,7 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Student;
+use App\Models\Username;
 
 class StudentController extends Controller
 {
@@ -18,7 +19,6 @@ class StudentController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'profile_picture' => ['required', 'image', 'max:2048'],
-            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
             'password' => ['required', Password::defaults()]
         ]);
 
@@ -32,6 +32,27 @@ class StudentController extends Controller
 
         // Get the validated data
         $data = $validator->validated();
+
+        // Generate username
+        $data['username'] = strtolower(substr($data['first_name'], 0, 1)) . strtolower($data['last_name']);
+
+        $record = Username::where('initial', $data['username']);
+        if ($record->exists()) {
+            $recordRow = $record->first();
+            $data['username'] = $data['username'] . $recordRow->count;
+            $record->update([
+                'count' => ($recordRow->count + 1)
+            ]);
+        }
+        else {
+            Username::create([
+                'initial' => $data['username'],
+                'count' => 1
+            ]);
+        }
+
+        // Generate email
+        $data['email'] = $data['username'] . '@' . env('MAIL_DOMAIN', 'university.edu');
 
         // Store image
         $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), time() . '.' . $request->profile_picture->extension());
@@ -104,7 +125,6 @@ class StudentController extends Controller
             'first_name' => ['string', 'max:255'],
             'last_name' => ['string', 'max:255'],
             'profile_picture' => ['image', 'max:2048'],
-            'email' => ['email', 'max:255', 'unique:students,email'],
             'password' => [Password::defaults()]
         ]);
 
