@@ -35,25 +35,12 @@ class StudentController extends Controller
         $data = $validator->validated();
 
         // Generate username
-        $data['username'] = strtolower(substr($data['first_name'], 0, 1)) . strtolower($data['last_name']);
-
-        $record = Username::where('initial', $data['username']);
-        if ($record->exists()) {
-            $recordRow = $record->first();
-            $data['username'] = $data['username'] . $recordRow->count;
-            $record->update([
-                'count' => ($recordRow->count + 1)
-            ]);
-        }
-        else {
-            Username::create([
-                'initial' => $data['username'],
-                'count' => 1
-            ]);
-        }
+        $data['username'] = app('App\Http\Controllers\UsernameController')
+            ->create($data['first_name'], $data['last_name']);
 
         // Generate email
-        $data['email'] = $data['username'] . '@' . env('MAIL_DOMAIN', 'university.edu');
+        $data['email'] = app('App\Http\Controllers\EmailController')
+            ->create($data['username']);
 
         // Store image
         $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), time() . '.' . $request->profile_picture->extension());

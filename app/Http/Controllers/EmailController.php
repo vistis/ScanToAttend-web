@@ -8,7 +8,12 @@ use App\Models\Admin;
 
 class EmailController extends Controller
 {
-    // Update all account email to a new domain set in environment
+    /* GENERATE EMAIL */
+    public function create($username) {
+        return $username . '@' . env('MAIL_DOMAIN', 'university.edu');
+    }
+
+    /* UPDATE ALL ACCOUNT EMAIL TO A NEW DOMAIN SET IN ENVIRONMENT */
     public function updateAll() {
         $students = Student::select('username')->get();
         foreach ($students as $student) {
