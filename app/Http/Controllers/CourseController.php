@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Course;
+use App\Models\ClassSession;
 
 class CourseController extends Controller
 {
@@ -70,10 +71,14 @@ class CourseController extends Controller
         // Fetch data
         $course = Course::find($data['id']);
 
+        // Get classes of course
+        $classes = app('App\Http\Controllers\CourseClassController')->readCourse($data['id']);
+
         // Respond as JSON
         return response()->json([
             'message' => "Course information retrieved.",
-            'course' => $course
+            'course' => $course,
+            'classes' => $classes
         ], 200);
     }
 
