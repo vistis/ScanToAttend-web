@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use App\Models\SessionAttendance;
 use App\Models\Student;
-use App\Models\ClassRegistration;
 use App\Models\ClassSession;
 use App\Models\CourseClass;
 
@@ -29,21 +29,22 @@ class SessionAttendanceController extends Controller
             ], 400);
         }
 
+        // Get the validated data
+        $data = $validator->validated();
+
         // The the validated data
-        $fingerprint = $validator->validated()['fingerprint_id'];
+        $fingerprint = $data['fingerprint_id'];
 
         // Get day, date, and time
-        $scannedAt = Carbon::parse($validator->validated()['scanned_at']);
+        $scannedAt = Carbon::parse($data['scanned_at']);
         $checkedInOn = $scannedAt->toDateString();
         $checkedInAt = $scannedAt->toTimeString();
         $day = $scannedAt->englishDayOfWeek;
 
         // Resolve the student information
-        $studentId = Student::where('fingerprint_id', $fingerprint)
-            ->first()
-            ->id;
+        $student = Student::where('fingerprint_id', $fingerprint)->first();
 
-        if(!$studentId) {
+        if(!$student) {
             return response()->json([
                 'message' => "Errors detected.",
                 'errors' => [
@@ -54,27 +55,18 @@ class SessionAttendanceController extends Controller
             ], 400);
         }
 
-        // Check if the student is enrolled into any class
-        if(!ClassRegistration::where('student_id', '=', $studentId)->exists()) {
-            return response()->json([
-                'message' => "Errors detected.",
-                'errors' => [
-                    'class_registration' => [
-                        "Student is not enrolled in any class."
-                    ]
-                ]
-            ], 400);
-        }
-
         // Resolve the session the student is taking
         $session = ClassSession::join('class_registrations', 'class_sessions.class_id', '=', 'class_registrations.class_id')
-            ->where('class_registrations.student_id', '=', $studentId)
+            ->where('class_registrations.student_id', '=', $student->id)
             ->where('class_sessions.day', '=', $day)
-            ->where('class_sessions.start_at', '<=', $checkedInAt)
-            ->where('class_sessions.end_at', '>=', $checkedInAt)
-            ->select('class_sessions.id as id', 'class_sessions.start_at as start_at');
+            ->where(function (Builder $query) use ($checkedInAt) {
+                $query->where('class_sessions.start_at', '<=', $checkedInAt)
+                    ->where('class_sessions.end_at', '>=', $checkedInAt);
+            })
+            ->select('class_sessions.id as id', 'class_sessions.class_id as class_id', 'class_sessions.start_at as start_at')
+            ->first();
 
-        if(!$session->exists()) {
+        if(!$session) {
             return response()->json([
                 'message' => "Errors detected.",
                 'errors' => [
@@ -85,11 +77,9 @@ class SessionAttendanceController extends Controller
             ], 400);
         }
 
-        $sessionId = $session->id;
-
         // Check if the student already checked in
-        if (SessionAttendance::where('student_id', $studentId)
-            ->where('session_id', $sessionId)
+        if (SessionAttendance::where('student_id', $student->id)
+            ->where('session_id', $session->id)
             ->where('checked_in_on', $checkedInOn)
             ->exists()
         ) {
@@ -103,21 +93,18 @@ class SessionAttendanceController extends Controller
             ], 400);
         }
 
-        // Resolve class information
-        $courseId = CourseClass::where('class_id', $session->class_id)
-            ->first()
-            ->course_id;
-        $classInfo = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
-            ->where('classes.class_id', $session->class_id)
-            ->where('classes.course_id', $courseId)
-            ->select('courses.code as code', 'courses.name as name', 'classes.section as section', 'classes.start_at as from', 'classes.end_at as to')
+        // Resolve session information
+        $sessionInfo = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
+            ->where('classes.id', $session->class_id)
+            ->select('courses.code as code', 'courses.name as name', 'classes.section as section')
             ->first();
 
         // Determine the status
         $startAt = Carbon::parse($session->start_at);
-        $startAtMin = ($startAt->hour * 60) + $startAt->minute;
-        $checkedInAtMin = ($checkedInAt->hour * 60) + $checkedInAt->minute;
-        if (($checkedInAtMin - $startAtMin) > 15) {
+        $checkedInAtObject = Carbon::parse($checkedInAt);
+        $startAtStamp = ($startAt->hour * 3600) + ($startAt->minute * 60) + $startAt->second;
+        $checkedInAtStamp = ($checkedInAtObject->hour * 3600) + ($checkedInAtObject->minute * 60) + $checkedInAtObject->second;
+        if (($checkedInAtStamp - $startAtStamp) >= 15 * 60) {
             $status = "Tardy";
         }
         else {
@@ -126,8 +113,8 @@ class SessionAttendanceController extends Controller
 
         // Record the attendance
         SessionAttendance::create([
-            'student_id' => $studentId,
-            'session_id' => $sessionId,
+            'student_id' => $student->id,
+            'session_id' => $session->id,
             'checked_in_on' => $checkedInOn,
             'checked_in_at' => $checkedInAt,
             'status' => $status
@@ -136,7 +123,7 @@ class SessionAttendanceController extends Controller
         // Respond as JSON
         return response()->json([
             'message' => "Checked in.",
-            'class_info' => $classInfo,
+            'session_info' => $sessionInfo,
         ]);
     }
 }

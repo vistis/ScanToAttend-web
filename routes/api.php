@@ -6,6 +6,7 @@ use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseClassController;
+use App\Http\Controllers\ClassSessionController;
 use App\Http\Controllers\ClassRegistrationController;
 use App\Http\Controllers\SessionAttendanceController;
 use App\Http\Controllers\EmailController;
@@ -23,6 +24,9 @@ Route::get('/class', [CourseClassController::class, 'readOne'])->name('class');
 Route::patch('/class/update', [CourseClassController::class, 'update'])->name('class.update');
 Route::delete('/class/delete', [CourseClassController::class, 'delete'])->name('class.delete');
 Route::delete('/class/unregister', [ClassRegistrationController::class, 'delete'])->name('class.unregister');
+
+Route::post('/session/add', [ClassSessionController::class, 'create'])->name('session.add');
+Route::delete('/session/remove', [ClassSessionController::class, 'delete'])->name('session.remove');
 
 Route::post('/student/register', [StudentController::class, 'create'])->name('student.register');
 Route::patch('/student/update', [StudentController::class, 'update'])->name('student.update');

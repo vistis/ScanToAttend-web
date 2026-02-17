@@ -101,8 +101,7 @@ class InstructorController extends Controller
         // JSON Response
         return response()->json([
             'message' => "Instructor information retrieved.",
-            'instructor' => $account,
-            'classes' => $classes
+            'instructor' => $account
         ], 200);
     }
 

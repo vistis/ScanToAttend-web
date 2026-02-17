@@ -53,7 +53,8 @@ class ClassRegistrationController extends Controller
 
         // Respond as JSON
         return response()->json([
-            'message' => "Registered student with ID " . $classRegistration->student_id . " into class with ID " . $classRegistration->class_id . ".",
+            'message' => "Class registration added.",
+            'class_registration' => $classRegistration
         ], 200);
     }
 
@@ -89,7 +90,7 @@ class ClassRegistrationController extends Controller
 
         // JSON Response
         return response()->json([
-            'message' => "Fetched student list of requested class.",
+            'message' => "Student list of class with ID " . $data['id'] . " retrived.",
             'students' => $students
         ], 200);
     }
@@ -117,7 +118,7 @@ class ClassRegistrationController extends Controller
         $record = ClassRegistration::where('student_id', $data['student_id'])
             ->where('class_id', $data['class_id'])->first();
 
-        if (!$record->exists()) {
+        if (!$record) {
             return response()->json([
                 'message' => "Errors detected.",
                 'errors' => [
@@ -133,7 +134,8 @@ class ClassRegistrationController extends Controller
 
         // JSON Response
         return response()->json([
-            'message' => "Unregistered student with ID " . $record->student_id . " from class with ID " . $record->class_id . "."
+            'message' => "Class registration removed.",
+            'class_registration' => $record
         ], 200);
     }
 }

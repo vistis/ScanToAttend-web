@@ -95,7 +95,7 @@ class CourseClassController extends Controller
 
         // Return data
         return response()->json([
-            'message' => "Class list retrived.",
+            'message' => "Class list of course with ID " . $data['id'] . " retrived.",
             'classes' => $classes
         ], 200);
     }
@@ -132,7 +132,7 @@ class CourseClassController extends Controller
 
         // Return data
         return response()->json([
-            'message' => "Class list retrived.",
+            'message' => "Class list of instructor with ID " . $data['id'] . " retrived.",
             'classes' => $classes
         ], 200);
     }
@@ -170,7 +170,7 @@ class CourseClassController extends Controller
 
         // Return data
         return response()->json([
-            'message' => "Class list retrived.",
+            'message' => "Class list of student with ID " . $data['id'] . " retrived.",
             'classes' => $classes
         ], 200);
     }
