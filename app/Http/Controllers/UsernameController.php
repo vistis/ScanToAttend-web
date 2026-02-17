@@ -14,7 +14,7 @@ class UsernameController extends Controller
         // Check if this username has already been generated
         $record = Username::where('initial', $username);
         if ($record->exists()) {
-            // If it does, the count of this username to have ever been created to the username
+            // If it does, append the historical count of same username generation
             $recordRow = $record->first();
             $username = $username . $recordRow->count;
 

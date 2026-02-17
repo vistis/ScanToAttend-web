@@ -99,20 +99,10 @@ class StudentController extends Controller
         // Generate image URL
         $account->profile_picture = Storage::url($account->profile_picture);
 
-        // Get classes the student is registered in
-        $classes = Student::join('class_registrations', 'class_registrations.student_id', '=', 'students.id')
-            ->join('classes', 'classes.id', '=', 'class_registrations.class_id')
-            ->join('courses', 'classes.course_id', '=', 'courses.id')
-            ->where('students.id', $data['id'])
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section')
-            ->orderByDesc('course_code')
-            ->get();
-
         // JSON Response
         return response()->json([
             'message' => "Student information retrieved.",
-            'student' => $account,
-            'classes' => $classes
+            'student' => $account
         ], 200);
     }
 
@@ -137,20 +127,22 @@ class StudentController extends Controller
         // Get the validated data
         $data = $validator->validated();
 
+        // Find the account
+        $account = Student::find($data['id']);
+
         // If the request contain a new profile picture
         if ($request->hasFile('profile_picture')) {
             // Store new picture
-            $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $data['username'] . '-' . time() . '.' . $request->profile_picture->extension());
+            $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $account->username . '-' . time() . '.' . $request->profile_picture->extension());
 
             // Delete old picture
             Storage::delete(Student::find($data['id'])->profile_picture);
         }
 
         // Update student account
-        Student::where('id', $data['id'])
-            ->update($data);
+        $account->update($data);
 
-        // Get the information of the new account
+        // Grab the updated account
         $account = Student::find($data['id']);
 
         // Generate profile picture URL

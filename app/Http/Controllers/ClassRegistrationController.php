@@ -7,25 +7,77 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ClassRegistration;
+use App\Models\CourseClass;
 
 class ClassRegistrationController extends Controller
 {
-    public function readClass(Request $request) : JsonResponse {
+    /* REGISTER A STUDENT INTO A CLASS */
+    public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['string', 'in:classes,id']
+            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'class_id' => ['required', 'integer', 'exists:classes,id']
         ]);
 
         // Return error message if the validation fails
         if ($validator->fails()) {
             return response()->json([
+                'message' => "Errors detected.",
                 'errors' => $validator->messages()
             ], 400);
         }
 
-        $students = ClassRegistration::join('classes', 'class_registration.class_id', '=', 'classes.id')
-            ->join('students', 'class_registration.student_id', '=', 'students.id')
-            ->where('classes.id', $request->class_id)
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Check if the student is already registered in this course
+        $courseId = CourseClass::find($data['class_id'])->course_id;
+        if (ClassRegistration::join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->join('courses', 'classes.course_id', '=', 'courses.id')
+            ->where('class_registrations.student_id', $data['student_id'])
+            ->where('courses.id', $courseId)
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'course' => [
+                        "Student is already registered in a class of the same course."
+                    ]
+                ]
+            ], 400);
+        }
+
+        // Add registration
+        $classRegistration = ClassRegistration::create($data);
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Registered student with ID " . $classRegistration->student_id . " into class with ID " . $classRegistration->class_id . ".",
+        ], 200);
+    }
+
+    /* GET THE LIST OF STUDENT REGISTERED IN A CLASS */
+    public function readStudent(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        $students = ClassRegistration::join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->join('students', 'class_registrations.student_id', '=', 'students.id')
+            ->where('classes.id', $data['id'])
             ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
             ->orderByDesc('first_name')
             ->get();
@@ -37,8 +89,51 @@ class ClassRegistrationController extends Controller
 
         // JSON Response
         return response()->json([
-            'message' => "Fetched students list of requested class.",
+            'message' => "Fetched student list of requested class.",
             'students' => $students
+        ], 200);
+    }
+
+    /* UNREGISTER A STUDENT FROM A CLASS */
+    public function delete(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'class_id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Find the registration record
+        $record = ClassRegistration::where('student_id', $data['student_id'])
+            ->where('class_id', $data['class_id'])->first();
+
+        if (!$record->exists()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'relation' => [
+                        "No registration record of this relation found."
+                    ]
+                ]
+            ], 404);
+        }
+
+        // Delete the record
+        $record->delete();
+
+        // JSON Response
+        return response()->json([
+            'message' => "Unregistered student with ID " . $record->student_id . " from class with ID " . $record->class_id . "."
         ], 200);
     }
 }

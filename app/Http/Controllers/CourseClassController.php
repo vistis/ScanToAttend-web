@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Query\JoinClause;
 use App\Models\CourseClass;
 
 class CourseClassController extends Controller
@@ -14,8 +13,8 @@ class CourseClassController extends Controller
     public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'instructor_id' => ['required', 'string', 'max:255', 'exists:instructors,id'],
-            'course_id' => ['required', 'string', 'max:255', 'exists:courses,id']
+            'instructor_id' => ['required', 'integer', 'exists:instructors,id'],
+            'course_id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
         // Return error message if the validation fails
@@ -55,12 +54,7 @@ class CourseClassController extends Controller
         }
 
         // Create class
-        $classId = CourseClass::create($data)->id;
-
-        $class = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
-            ->where('classes.id', $classId)
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
-            ->first();
+        $class = CourseClass::create($data);
 
         return response()->json([
             'message' => "Class added.",
@@ -69,11 +63,27 @@ class CourseClassController extends Controller
     }
 
     /* GET CLASSES OF A COURSE */
-    public function readCourse($courseId) {
+    public function readCourse(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:courses,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
         // Database query
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
-            ->where('courses.id', $courseId)
+            ->where('courses.id', $data['id'])
             ->select('classes.id as id', 'classes.section as section', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
             ->orderBy('section')
             ->get();
@@ -84,7 +94,10 @@ class CourseClassController extends Controller
         }
 
         // Return data
-        return $classes;
+        return response()->json([
+            'message' => "Class list retrived.",
+            'classes' => $classes
+        ], 200);
     }
 
     /* GET CLASSES OF AN INSTRUCTOR */
@@ -118,7 +131,10 @@ class CourseClassController extends Controller
         }
 
         // Return data
-        return $classes;
+        return response()->json([
+            'message' => "Class list retrived.",
+            'classes' => $classes
+        ], 200);
     }
 
     /* GET CLASSES OF A STUDENT */
@@ -141,8 +157,8 @@ class CourseClassController extends Controller
 
         // Database query
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
+            ->join('class_registrations', 'classes.id', '=', 'class_registrations.class_id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
-            ->join('class_registrations', 'classes.id', '=', 'class_registration.class_id')
             ->where('class_registrations.student_id', $data['id'])
             ->select('classes.id as id', 'classes.section as section', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
             ->get();
@@ -153,7 +169,10 @@ class CourseClassController extends Controller
         }
 
         // Return data
-        return $classes;
+        return response()->json([
+            'message' => "Class list retrived.",
+            'classes' => $classes
+        ], 200);
     }
 
     /* GET CLASS INFORMATION */
@@ -196,7 +215,7 @@ class CourseClassController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id'],
-            'instructor_id' => ['required', 'string', 'max:255', 'exists:instructors,id']
+            'instructor_id' => ['integer', 'exists:instructors,id']
         ]);
 
         // Return error message if the validation fails
@@ -215,11 +234,7 @@ class CourseClassController extends Controller
             ->update($data);
 
         // Get the updated information
-        $class = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
-            ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
-            ->where('classes.id', $data['id'])
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name', 'classes.created_at as created_at', 'classes.updated_at as updated_at')
-            ->first();
+        $class = CourseClass::find($data['id']);
 
         // Respond as JSON
         return response()->json([
@@ -247,10 +262,7 @@ class CourseClassController extends Controller
         $data = $validator->validated();
 
         // Find the course
-        $class = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
-            ->where('classes.id', $data['id'])
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section', 'classes.created_at as created_at', 'classes.updated_at as updated_at')
-            ->first();
+        $class = CourseClass::find($data['id']);
 
         // Delete the course
         $class->delete();

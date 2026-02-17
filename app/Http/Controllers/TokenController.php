@@ -82,7 +82,7 @@ class TokenController extends Controller
             ], 400);
         }
 
-        // Generate image URL
+        // Generate profile picture URL
         $account->profile_picture = Storage::url($account->profile_picture);
 
         // Generate token
@@ -92,6 +92,7 @@ class TokenController extends Controller
         return response()->json([
             'message' => "Logged in.",
             'account' => $account,
+            'guard' => $guard,
             'token' => $token
         ], 200);
     }
@@ -100,8 +101,10 @@ class TokenController extends Controller
         // Delete the currently in-use token of the user making the request
         $request->user()->currentAccessToken()->delete;
 
+        // Confirmation message
         return response()->json([
-            'message' => 'Logged out.'
+            'message' => "Logged out.",
+            'account' => $request->user()
         ], 200);
     }
 }

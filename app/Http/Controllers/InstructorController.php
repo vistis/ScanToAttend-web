@@ -98,15 +98,6 @@ class InstructorController extends Controller
         // Generate image URL
         $account->profile_picture = Storage::url($account->profile_picture);
 
-        // Get classes the instructor teaches
-        $classes = Instructor::join('classes', 'classes.instructor_id', '=', 'instructors.id')
-            ->join('courses', 'classes.course_id', '=', 'courses.id')
-            ->where('instructors.id', $data['id'])
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section')
-            ->orderByDesc('course_code')
-            ->orderBy('section')
-            ->get();
-
         // JSON Response
         return response()->json([
             'message' => "Instructor information retrieved.",
@@ -119,7 +110,7 @@ class InstructorController extends Controller
     public function update(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['required', 'integer', 'exists:instructor,id'],
+            'id' => ['required', 'integer', 'exists:instructors,id'],
             'profile_picture' => ['image', 'max:2048'],
             'password' => [Password::defaults()]
         ]);
@@ -135,20 +126,22 @@ class InstructorController extends Controller
         // Get the validated data
         $data = $validator->validated();
 
+        // Find the account
+        $account = Instructor::find($data['id']);
+
         // If the request contain a new profile picture
         if ($request->hasFile('profile_picture')) {
             // Store new picture
-            $data['profile_picture'] = Storage::putFileAs('instructor', $request->file('profile_picture'), $data['username'] . '-' . time() . '.' . $request->profile_picture->extension());
+            $data['profile_picture'] = Storage::putFileAs('instructor', $request->file('profile_picture'), $account->username . '-' . time() . '.' . $request->profile_picture->extension());
 
             // Delete old picture
             Storage::delete(Instructor::find($data['id'])->profile_picture);
         }
 
         // Update instructor account
-        Instructor::where('id', $data['id'])
-            ->update($data);
+        $account->update($data);
 
-        // Get the information of the new account
+        // Grab the updated account
         $account = Instructor::find($data['id']);
 
         // Generate profile picture URL
