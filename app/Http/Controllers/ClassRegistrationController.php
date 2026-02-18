@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\ClassRegistration;
 use App\Models\CourseClass;
 
@@ -46,6 +47,30 @@ class ClassRegistrationController extends Controller
                     ]
                 ]
             ], 400);
+        }
+
+        // Check if the student has schedule overlaps
+        $sessions = app('App\Http\Controllers\ClassSessionController')->read($data['class_id']);
+
+        foreach ($sessions as $session) {
+            if (ClassRegistration::join('class_sessions', 'class_registrations.class_id', '=', 'class_sessions.class_id')
+                ->where('class_registrations.student_id', $data['student_id'])
+                ->where('class_sessions.day', $session->day)
+                ->where(function (Builder $query) use ($session) {
+                    $query->where('class_sessions.start_at', '<', $session->end_at)
+                        ->where('class_sessions.end_at', '>', $session->start_at);
+                })
+                ->exists()
+            ) {
+                return response()->json([
+                    'message' => "Errors detected.",
+                    'errors' => [
+                        'class_session' => [
+                            "The student's schedule conflicts with this class."
+                        ]
+                    ]
+                ], 400);
+            }
         }
 
         // Add registration

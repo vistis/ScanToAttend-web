@@ -37,7 +37,8 @@ Route::get('/class/list/course', [CourseClassController::class, 'readAllForCours
 Route::get('/class/list/instructor', [CourseClassController::class, 'readAllForInstructor']);
 Route::get('/class/list/student', [CourseClassController::class, 'readAllForStudent']);
 Route::get('/class', [CourseClassController::class, 'readOne']);
-Route::patch('/class/update', [CourseClassController::class, 'update']);
+Route::patch('/class/assign', [CourseClassController::class, 'updateAssign']);
+Route::patch('/class/unassign', [CourseClassController::class, 'updateUnassign']);
 Route::delete('/class/delete', [CourseClassController::class, 'delete']);
 Route::delete('/class/unregister', [ClassRegistrationController::class, 'delete']);
 

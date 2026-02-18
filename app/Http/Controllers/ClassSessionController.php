@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\ClassSession;
 use Carbon\Carbon;
+use App\Models\ClassSession;
+use App\Models\CourseClass;
 
 class ClassSessionController extends Controller
 {
@@ -40,12 +41,12 @@ class ClassSessionController extends Controller
         $data['start_at'] = $startAt->toTimeString();
         $data['end_at'] = $endAt->toTimeString();
 
-        if ($endAtStamp - $startAtStamp < 3600) {
+        if ($endAtStamp - $startAtStamp < 50 * 60) {
             return response()->json([
                 'message' => "Errors detected.",
                 'errors' => [
                     'timeslot' => [
-                        "Timeslot for session must be at least 1 hour long."
+                        "Timeslot for session must be at least 50 minutes long."
                     ]
                 ]
             ], 400);
@@ -66,6 +67,54 @@ class ClassSessionController extends Controller
                     ]
                 ]
             ], 400);
+        }
+
+        // Check if the session overlaps with the schedule of the assigned class instructor
+        $instructorId = CourseClass::find($data['class_id'])->instructor_id;
+        if (ClassSession::join('classes', 'class_sessions.class_id', '=', 'classes.id')
+            ->where('classes.instructor_id', $instructorId)
+            ->where('class_sessions.day', $data['day'])
+            ->where(function (Builder $query) use ($data) {
+                $query->where('class_sessions.start_at', '<', $data['end_at'])
+                    ->where('class_sessions.end_at', '>', $data['start_at']);
+            })
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class_session' => [
+                        "The instructor schedule conflicts with this with this session."
+                    ]
+                ]
+            ], 400);
+        }
+
+        // Check if the session overlaps with the schedule of students
+        $students = CourseClass::join('class_registrations', 'class_registrations.class_id', '=', 'classes.id')
+            ->where('classes.id', $data['class_id'])
+            ->select('class_registrations.student_id as id')
+            ->get();
+
+        foreach ($students as $student) {
+            if (ClassSession::join('class_registrations', 'class_registrations.class_id', '=', 'class_sessions.class_id')
+                ->where('class_registrations.student_id', $student->id)
+                ->where('class_sessions.day', $data['day'])
+                ->where(function (Builder $query) use ($data) {
+                    $query->where('class_sessions.start_at', '<', $data['end_at'])
+                        ->where('class_sessions.end_at', '>', $data['start_at']);
+                })
+                ->exists()
+            ) {
+                return response()->json([
+                    'message' => "Errors detected.",
+                    'errors' => [
+                        'class_session' => [
+                            "The new session conflicts with registered student schedule."
+                        ]
+                    ]
+                ], 400);
+            }
         }
 
         // Add session

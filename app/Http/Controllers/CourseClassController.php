@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\CourseClass;
 
 class CourseClassController extends Controller
@@ -13,7 +14,6 @@ class CourseClassController extends Controller
     public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'instructor_id' => ['required', 'integer', 'exists:instructors,id'],
             'course_id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
@@ -259,8 +259,8 @@ class CourseClassController extends Controller
         ], 200);
     }
 
-    /* UPDATE CLASS */
-    public function update(Request $request) : JsonResponse {
+    /* ASSIGN INSTRUCTOR TO CLASS */
+    public function updateAssign(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id'],
@@ -278,9 +278,67 @@ class CourseClassController extends Controller
         // Get the validated data
         $data = $validator->validated();
 
+        // Check for overlapping instructor schedule
+        $sessions = app('App\Http\Controllers\ClassSessionController')->read($data['id']);
+
+        foreach ($sessions as $session) {
+            if (CourseClass::join('class_sessions', 'class_sessions.class_id', '=', 'classes.id')
+                ->where('classes.instructor_id', $data['instructor_id'])
+                ->where('class_sessions.day', $session->day)
+                ->where(function (Builder $query) use ($session) {
+                    $query->where('class_sessions.start_at', '<', $session->end_at)
+                        ->where('class_sessions.end_at', '>', $session->start_at);
+                })
+                ->exists()
+            ) {
+                return response()->json([
+                    'message' => "Errors detected.",
+                    'errors' => [
+                        'class_session' => [
+                            "The instructor schedule conflicts with this class."
+                        ]
+                    ]
+                ], 400);
+            }
+        }
+
         // Update information
         CourseClass::where('id', $data['id'])
             ->update($data);
+
+        // Get the updated information
+        $class = CourseClass::find($data['id']);
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Class updated.",
+            'class' => $class
+        ]);
+    }
+
+    /* UNASSIGN INSTRUCTOR FROM CLASS */
+    public function updateUnassign(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Set instructor to null
+        CourseClass::where('id', $data['id'])
+            ->update([
+                'instructor_id' => null
+            ]);
 
         // Get the updated information
         $class = CourseClass::find($data['id']);
