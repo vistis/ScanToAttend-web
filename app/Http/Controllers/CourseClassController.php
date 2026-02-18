@@ -63,7 +63,7 @@ class CourseClassController extends Controller
     }
 
     /* GET CLASSES OF A COURSE */
-    public function readCourse(Request $request) : JsonResponse {
+    public function readAllForCourse(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:courses,id']
@@ -101,7 +101,7 @@ class CourseClassController extends Controller
     }
 
     /* GET CLASSES OF AN INSTRUCTOR */
-    public function readInstructor(Request $request) : JsonResponse {
+    public function readAllForInstructor(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:instructors,id']
@@ -137,8 +137,32 @@ class CourseClassController extends Controller
         ], 200);
     }
 
+    /* GET CLASSES AS A INSTRUCTOR */
+    public function readAllAsInstructor(Request $request) : JsonResponse {
+        // Get user
+        $user = $request->user();
+
+        // Database query
+        $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
+            ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
+            ->where('instructors.id', $user->id)
+            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section')
+            ->get();
+
+        // Get class sessions
+        foreach ($classes as $class) {
+            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+        }
+
+        // Return data
+        return response()->json([
+            'message' => "Class list retrived.",
+            'classes' => $classes
+        ], 200);
+    }
+
     /* GET CLASSES OF A STUDENT */
-    public function readStudent(Request $request) : JsonResponse {
+    public function readAllForStudent(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id']
@@ -171,6 +195,31 @@ class CourseClassController extends Controller
         // Return data
         return response()->json([
             'message' => "Class list of student with ID " . $data['id'] . " retrived.",
+            'classes' => $classes
+        ], 200);
+    }
+
+    /* GET CLASSES AS A STUDENT */
+    public function readAllAsStudent(Request $request) : JsonResponse {
+        // Get user
+        $user = $request->user();
+
+        // Database query
+        $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
+            ->join('class_registrations', 'classes.id', '=', 'class_registrations.class_id')
+            ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
+            ->where('class_registrations.student_id', $user->id)
+            ->select('classes.id as id', 'classes.section as section', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
+            ->get();
+
+        // Get class sessions
+        foreach ($classes as $class) {
+            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+        }
+
+        // Return data
+        return response()->json([
+            'message' => "Class list retrived.",
             'classes' => $classes
         ], 200);
     }

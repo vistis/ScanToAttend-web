@@ -99,7 +99,7 @@ class TokenController extends Controller
 
     public function delete(Request $request) : JsonResponse {
         // Delete the currently in-use token of the user making the request
-        $request->user()->currentAccessToken()->delete;
+        $request->user()->currentAccessToken()->delete();
 
         // Confirmation message
         return response()->json([

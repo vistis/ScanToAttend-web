@@ -76,6 +76,7 @@ class ClassRegistrationController extends Controller
         // Get the validated data
         $data = $validator->validated();
 
+        // Get the student list
         $students = ClassRegistration::join('classes', 'class_registrations.class_id', '=', 'classes.id')
             ->join('students', 'class_registrations.student_id', '=', 'students.id')
             ->where('classes.id', $data['id'])

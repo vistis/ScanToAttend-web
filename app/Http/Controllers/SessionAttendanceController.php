@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use App\Models\SessionAttendance;
 use App\Models\Student;
 use App\Models\ClassSession;
+use App\Models\ClassRegistration;
 use App\Models\CourseClass;
 
 class SessionAttendanceController extends Controller
@@ -98,6 +100,9 @@ class SessionAttendanceController extends Controller
             ->where('classes.id', $session->class_id)
             ->select('courses.code as code', 'courses.name as name', 'classes.section as section')
             ->first();
+        $sessionInfo->day = $session->day;
+        $sessionInfo->from = $session->start_at;
+        $sessionInfo->to = $session->end_at;
 
         // Determine the status
         $startAt = Carbon::parse($session->start_at);
@@ -122,8 +127,172 @@ class SessionAttendanceController extends Controller
 
         // Respond as JSON
         return response()->json([
-            'message' => "Checked in.",
+            'message' => $student->username . " checked in.",
             'session_info' => $sessionInfo,
+        ]);
+    }
+
+    /* GET ATTENDANCE RECORD OF A CLASS AS STUDENT */
+    public function readAllAsStudent(Request $request) {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Get student information
+        $student = $request->user();
+
+        // Check if the student is registered in the class
+        if (!ClassRegistration::where('student_id', $student->id)
+            ->where('class_id', $data['id'])
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class_registration' => [
+                        "You are not registered in this class."
+                    ]
+                ]
+            ], 404);
+        }
+
+        // Get attendance record
+        $dates = SessionAttendance::join('class_sessions', 'session_attendance.session_id', '=', 'class_sessions.id')
+            ->where('class_sessions.class_id', $data['id'])
+            ->select('session_attendance.checked_in_on')
+            ->distinct()
+            ->orderBy('session_attendance.checked_in_on')
+            ->get();
+
+        $records = array();
+
+        foreach ($dates as $date) {
+            $entry = SessionAttendance::join('class_sessions', 'session_attendance.session_id', '=', 'class_sessions.id')
+                ->where('class_sessions.class_id', $data['id'])
+                ->where('session_attendance.checked_in_on', $date->checked_in_on)
+                ->where('session_attendance.student_id', $student->id);
+
+            $entryInfo = SessionAttendance::join('class_sessions', 'session_attendance.session_id', '=', 'class_sessions.id')
+                ->where('class_sessions.class_id', $data['id'])
+                ->where('session_attendance.checked_in_on', $date->checked_in_on)
+                ->select('class_sessions.day', 'class_sessions.start_at', 'class_sessions.end_at', 'session_attendance.checked_in_on as date')
+                ->first();
+
+            if ($entry->exists()) {
+                $entryInfo->status = $entry->first()->status;
+            }
+            else {
+                $entryInfo->status = "Absent";
+            }
+
+            $records[] = $entryInfo;
+        }
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Retrieved attendance record for class with ID " . $data['id'] . ".",
+            'records' => $records
+        ]);
+    }
+
+    /* GET THE ATTENDANCE RECORD OF A SESSION AS INSTRUCTOR */
+    public function readAllForSession (Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:class_sessions,id'],
+            'date' => ['required', 'date', 'date_format:Y-m-d']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Get the instructor information
+        $instructor = $request->user();
+
+        // Get the class the session is apart of
+        $class = ClassSession::join('classes', 'class_sessions.class_id', '=', 'classes.id')
+            ->where('class_sessions.id', $data['id'])
+            ->where('classes.instructor_id', $instructor->id)
+            ->select('classes.id as id')
+            ->first();
+
+        // Check if the instructor teaches this class
+        if (!$class){
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'session_attendance' => [
+                        "No access to the attendance record of this session."
+                    ]
+                ]
+            ], 403);
+        }
+
+        // Check if the session proceeded on the requested date
+        if (!ClassSession::where('id', $data['id'])
+            ->where('day', Carbon::parse($data['date'])->englishDayOfWeek)
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class_session' => [
+                        "The requested session did not proceed on this date."
+                    ]
+                ]
+            ], 404);
+        }
+
+        // Get the student list
+        $students = ClassRegistration::join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->join('students', 'class_registrations.student_id', '=', 'students.id')
+            ->where('classes.id', $class->id)
+            ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
+            ->orderByDesc('first_name')
+            ->get();
+
+        // Get the attendance status
+        foreach ($students as $student) {
+            $entry = SessionAttendance::where('checked_in_on', $data['date'])
+                ->where('student_id', $student->id)
+                ->where('session_id', $data['id'])
+                ->first();
+
+            if ($entry) {
+                $student->status = $entry->status;
+            }
+            else {
+                $student->status = "Absent";
+            }
+
+            // Also generate URL for profile picture
+            $student->profile_picture = Storage::url($student->profile_picture);
+        }
+
+        // Respond as JSON
+        return response()->json([
+            'message' => "Retrieved attendance list on " . $data['date'] . " for session with ID " . $data['id'] . ".",
+            'students' => $students,
         ]);
     }
 }
