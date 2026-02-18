@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -90,7 +91,7 @@ class CourseClassController extends Controller
 
         // Get class sessions
         foreach ($classes as $class) {
-            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+            $class->sessions = getClassSession($class->id);
         }
 
         // Return data
@@ -127,7 +128,7 @@ class CourseClassController extends Controller
 
         // Get class sessions
         foreach ($classes as $class) {
-            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+            $class->sessions = getClassSession($class->id);
         }
 
         // Return data
@@ -151,7 +152,7 @@ class CourseClassController extends Controller
 
         // Get class sessions
         foreach ($classes as $class) {
-            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+            $class->sessions = getClassSession($class->id);
         }
 
         // Return data
@@ -189,7 +190,7 @@ class CourseClassController extends Controller
 
         // Get class sessions
         foreach ($classes as $class) {
-            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+            $class->sessions = getClassSession($class->id);
         }
 
         // Return data
@@ -214,7 +215,7 @@ class CourseClassController extends Controller
 
         // Get class sessions
         foreach ($classes as $class) {
-            $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($class->id);
+            $class->sessions = getClassSession($class->id);
         }
 
         // Return data
@@ -250,7 +251,7 @@ class CourseClassController extends Controller
             ->first();
 
         // Get class sessions
-        $class->sessions = app('App\Http\Controllers\ClassSessionController')->read($data['id']);
+        $class->sessions = getClassSession($data['id']);
 
         // Respond as JSON
         return response()->json([
@@ -279,7 +280,7 @@ class CourseClassController extends Controller
         $data = $validator->validated();
 
         // Check for overlapping instructor schedule
-        $sessions = app('App\Http\Controllers\ClassSessionController')->read($data['id']);
+        $sessions = getClassSession($data['id']);
 
         foreach ($sessions as $session) {
             if (CourseClass::join('class_sessions', 'class_sessions.class_id', '=', 'classes.id')

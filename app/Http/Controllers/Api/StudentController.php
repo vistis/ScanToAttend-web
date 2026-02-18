@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Student;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Instructor;
+use Illuminate\Validation\Rules\Password;
 
-class InstructorController extends Controller
+class StudentController extends Controller
 {
-    /* ADD INSTRUCTOR */
+    /* REGISTER STUDENT */
     public function create(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
+            'fingerprint_id' => ['required', 'integer', 'unique:students,fingerprint_id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'profile_picture' => ['required', 'image', 'max:2048'],
@@ -33,32 +35,30 @@ class InstructorController extends Controller
         $data = $validator->validated();
 
         // Generate username
-        $data['username'] = app('App\Http\Controllers\UsernameController')
-            ->create($data['first_name'], $data['last_name']);
+        $data['username'] = generateUsername($data['first_name'], $data['last_name']);
 
         // Generate email
-        $data['email'] = app('App\Http\Controllers\EmailController')
-            ->create($data['username']);
+        $data['email'] = generateEmail($data['username']);
 
         // Store image
-        $data['profile_picture'] = Storage::putFileAs('instructor', $request->file('profile_picture'), $data['username'] . '-' . time() . '.' . $request->profile_picture->extension());
+        $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $data['username'] . '-' . time() . '.' . $request->profile_picture->extension());
 
-        // Create the instructor account
-        $account = Instructor::create($data);
+        // Create the student account
+        $account = Student::create($data);
 
         // Return image link
         $account->profile_picture = Storage::url($account->profile_picture);
 
         return response()->json([
-            'message' => "Instructor added.",
-            'instructor' => $account
+            'message' => "Student registered.",
+            'student' => $account
         ], 200);
     }
 
-    /* INSTRUCTOR LIST */
+    /* STUDENT LIST */
     public function readAll() : JsonResponse {
         // Database query
-        $accounts = Instructor::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
+        $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
             ->orderByDesc('first_name')
             ->get();
 
@@ -69,16 +69,16 @@ class InstructorController extends Controller
 
         // JSON Response
         return response()->json([
-            'meesage' => "Instructors list retrieved.",
-            'instructor' => $accounts
+            'meesage' => "Students list retrieved.",
+            'students' => $accounts
         ], 200);
     }
 
-    /* INSTRUCTOR INFORMATION */
+    /* STUDENT INFORMATION */
     public function readOne(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['required', 'integer', 'exists:instructors,id']
+            'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
         // Return error message if the validation fails
@@ -93,23 +93,24 @@ class InstructorController extends Controller
         $data = $validator->validated();
 
         // Database query
-        $account = Instructor::find($data['id']);
+        $account = Student::find($data['id']);
 
         // Generate image URL
         $account->profile_picture = Storage::url($account->profile_picture);
 
         // JSON Response
         return response()->json([
-            'message' => "Instructor information retrieved.",
-            'instructor' => $account
+            'message' => "Student information retrieved.",
+            'student' => $account
         ], 200);
     }
 
-    /* UPDATE INSTRUCTOR */
+    /* UPDATE STUDENT */
     public function update(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['required', 'integer', 'exists:instructors,id'],
+            'id' => ['required', 'integer', 'exists:students,id'],
+            'fingerprint_id' => ['integer', 'unique:students,fingerprint_id'],
             'profile_picture' => ['image', 'max:2048'],
             'password' => [Password::defaults()]
         ]);
@@ -126,38 +127,43 @@ class InstructorController extends Controller
         $data = $validator->validated();
 
         // Find the account
-        $account = Instructor::find($data['id']);
+        $account = Student::find($data['id']);
 
         // If the request contain a new profile picture
         if ($request->hasFile('profile_picture')) {
             // Store new picture
-            $data['profile_picture'] = Storage::putFileAs('instructor', $request->file('profile_picture'), $account->username . '-' . time() . '.' . $request->profile_picture->extension());
+            $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $account->username . '-' . time() . '.' . $request->profile_picture->extension());
 
             // Delete old picture
-            Storage::delete(Instructor::find($data['id'])->profile_picture);
+            Storage::delete($account->profile_picture);
         }
 
-        // Update instructor account
+        // Hashify the password
+        if ($data['password']) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        // Update student account
         $account->update($data);
 
         // Grab the updated account
-        $account = Instructor::find($data['id']);
+        $account = Student::find($data['id']);
 
         // Generate profile picture URL
         $account->profile_picture = Storage::url($account->profile_picture);
 
         // Respond as JSON
         return response()->json([
-            'message' => "Instructor updated.",
-            'instructor' => $account
+            'message' => "Student updated.",
+            'student' => $account
         ], 200);
     }
 
-    /* DELETE INSTRUCTOR */
+    /* DELETE STUDENT */
     public function delete(Request $request) {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'id' => ['required', 'integer', 'exists:instructors,id']
+            'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
         // Return error message if the validation fails
@@ -172,7 +178,7 @@ class InstructorController extends Controller
         $data = $validator->validated();
 
         // Get the account
-        $account = Instructor::find($data['id']);
+        $account = Student::find($data['id']);
 
         // Delete profile picture file
         Storage::delete($account->profile_picture);
@@ -182,8 +188,8 @@ class InstructorController extends Controller
 
         // Respond as JSON
         return response()->json([
-            'message' => "Instructor deleted.",
-            'instructor' => $account
+            'message' => "Student deleted.",
+            'student' => $account
         ], 200);
     }
 }

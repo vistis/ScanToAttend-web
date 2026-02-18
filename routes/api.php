@@ -4,15 +4,15 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\InstructorController;
-use App\Http\Controllers\TokenController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\CourseClassController;
-use App\Http\Controllers\ClassSessionController;
-use App\Http\Controllers\ClassRegistrationController;
-use App\Http\Controllers\SessionAttendanceController;
-use App\Http\Controllers\EmailController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\InstructorController;
+use App\Http\Controllers\Api\TokenController;
+use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\CourseClassController;
+use App\Http\Controllers\Api\ClassSessionController;
+use App\Http\Controllers\Api\ClassRegistrationController;
+use App\Http\Controllers\Api\SessionAttendanceController;
+use App\Http\Controllers\Api\EmailController;
 
 /* TOKEN AUTHENTICATION */
 Route::post('/login', [TokenController::class, 'create'])->name('login');
@@ -22,7 +22,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) : Js
     $account = $request->user();
 
     // Generate URL for profile image
-    $account->profile_picture = Storage::url($account->profile_picture);
+    if ($account->profile_picture) {
+        $account->profile_picture = Storage::url($account->profile_picture);
+    }
 
     // JSON response
     return response()->json([
@@ -49,6 +51,8 @@ Route::post('/student/register', [StudentController::class, 'create']);
 Route::patch('/student/update', [StudentController::class, 'update']);
 Route::delete('/student/delete', [StudentController::class, 'delete']);
 Route::get('/student/list', [StudentController::class, 'readAll']);
+Route::middleware('auth:instructor-api')->get('/student/list-for-instructor/class', [ClassRegistrationController::class, 'readAllAsInstructor']);
+Route::get('/student/list-for-admin/class', [ClassRegistrationController::class, 'readAllAsAdmin']);
 Route::get('/student', [StudentController::class, 'readOne']);
 Route::middleware('auth:student-api')->get('/student/class/list', [CourseClassController::class, 'readAllAsStudent']);
 Route::middleware('auth:student-api')->get('/student/attendance/class', [SessionAttendanceController::class, 'readAllAsStudent']);
@@ -59,11 +63,12 @@ Route::get('/instructor/list', [InstructorController::class, 'readAll']);
 Route::get('/instructor', [InstructorController::class, 'readOne']);
 Route::middleware('auth:instructor-api')->get('/instructor/class/list', [CourseClassController::class, 'readAllAsInstructor']);
 Route::middleware('auth:instructor-api')->get('/attendance/session', [SessionAttendanceController::class, 'readAllForSession']);
+Route::middleware('auth:instructor-api')->get('/attendance/dates/class', [SessionAttendanceController::class, 'readDateForClass']);
 Route::patch('/instructor/update', [InstructorController::class, 'update']);
 Route::delete('/instructor/delete', [InstructorController::class, 'delete']);
 
 Route::post('/course/add', [CourseController::class, 'create']);
-Route::get('/course/list', [CourseController::class, 'readAll']);
+Route::middleware('auth:admin-api')->get('/course/list', [CourseController::class, 'readAll']);
 Route::get('/course', [CourseController::class, 'readOne']);
 Route::patch('/course/update', [CourseController::class, 'update']);
 Route::delete('/course/delete', [CourseController::class, 'delete']);

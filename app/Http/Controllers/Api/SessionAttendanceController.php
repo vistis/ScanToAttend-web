@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -65,7 +66,7 @@ class SessionAttendanceController extends Controller
                 $query->where('class_sessions.start_at', '<=', $checkedInAt)
                     ->where('class_sessions.end_at', '>=', $checkedInAt);
             })
-            ->select('class_sessions.id as id', 'class_sessions.class_id as class_id', 'class_sessions.start_at as start_at')
+            ->select('class_sessions.id as id', 'class_sessions.class_id as class_id', 'class_sessions.day', 'class_sessions.start_at as start_at', 'class_sessions.end_at')
             ->first();
 
         if(!$session) {
@@ -207,6 +208,61 @@ class SessionAttendanceController extends Controller
         ]);
     }
 
+    /* GET THE DATES WITH ATTENDANCE RECORD OF A CLASS */
+    public function readDateForClass (Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Get the instructor information
+        $instructor = $request->user();
+
+        // Check if the instructor teaches this class
+        if (!CourseClass::where('id', $data['id'])
+            ->where('instructor_id', $instructor->id)
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class' => [
+                        "You do not have access to this class."
+                    ]
+                ]
+            ], 403);
+        }
+
+        // Get the record
+        $entries = SessionAttendance::join('class_sessions', 'session_attendance.session_id', '=', 'class_sessions.id')
+            ->where('class_sessions.class_id', $data['id'])
+            ->select('session_attendance.checked_in_on')
+            ->distinct()
+            ->get();
+
+        $dates = array();
+
+        foreach ($entries as $entry) {
+            $dates[] = $entry->checked_in_on;
+        }
+
+        return response()->json([
+            'message' => "Retrieved attendance dates for class with ID " . $data['id'] . ".",
+            'dates' => $dates
+        ]);
+    }
+
     /* GET THE ATTENDANCE RECORD OF A SESSION AS INSTRUCTOR */
     public function readAllForSession (Request $request) : JsonResponse {
         // Validate request
@@ -249,8 +305,7 @@ class SessionAttendanceController extends Controller
         }
 
         // Check if the session proceeded on the requested date
-        if (!ClassSession::where('id', $data['id'])
-            ->where('day', Carbon::parse($data['date'])->englishDayOfWeek)
+        if (!SessionAttendance::where('session_id', $data['id'])
             ->exists()
         ) {
             return response()->json([

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -37,14 +38,14 @@ class TokenController extends Controller
         $query = Student::where('username', $data['username']);
         if ($query->exists()) {
             $account = $query->first();
-            $guard = 'student-api';
+            $guard = 'student';
         }
         else {
             // Try instructor
             $query = Instructor::where('username', $data['username']);
             if ($query->exists()) {
                 $account = $query->first();
-                $guard = 'instructor-api';
+                $guard = 'instructor';
             }
 
             else {
@@ -52,7 +53,7 @@ class TokenController extends Controller
                 $query = Admin::where('username', $data['username']);
                 if ($query->exists()) {
                     $account = $query->first();
-                    $guard = 'admin-api';
+                    $guard = 'admin';
                 }
 
                 // username is invalid
@@ -83,7 +84,9 @@ class TokenController extends Controller
         }
 
         // Generate profile picture URL
-        $account->profile_picture = Storage::url($account->profile_picture);
+        if ($account->profile_picture) {
+            $account->profile_picture = Storage::url($account->profile_picture);
+        }
 
         // Generate token
         $token = $account->createToken($guard)->plainTextToken;

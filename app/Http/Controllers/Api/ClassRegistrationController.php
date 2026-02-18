@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -50,7 +51,7 @@ class ClassRegistrationController extends Controller
         }
 
         // Check if the student has schedule overlaps
-        $sessions = app('App\Http\Controllers\ClassSessionController')->read($data['class_id']);
+        $sessions = getClassSession($data['class_id']);
 
         foreach ($sessions as $session) {
             if (ClassRegistration::join('class_sessions', 'class_registrations.class_id', '=', 'class_sessions.class_id')
@@ -83,8 +84,64 @@ class ClassRegistrationController extends Controller
         ], 200);
     }
 
-    /* GET THE LIST OF STUDENT REGISTERED IN A CLASS */
-    public function readStudent(Request $request) : JsonResponse {
+    /* GET THE LIST OF STUDENT REGISTERED IN A CLASS AS AN INSTRUCTOR */
+    public function readAllAsInstructor(Request $request) : JsonResponse {
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        // Return error message if the validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => $validator->messages()
+            ], 400);
+        }
+
+        // Get the validated data
+        $data = $validator->validated();
+
+        // Get instructor information
+        $instructor = $request->user();
+
+        // Check if the instructor teaches this class
+        if (!CourseClass::where('id', $data['id'])
+            ->where('instructor_id', $instructor->id)
+            ->exists()
+        ) {
+            return response()->json([
+                'message' => "Errors detected.",
+                'errors' => [
+                    'class' => [
+                        "You do not have access to this class."
+                    ]
+                ]
+            ], 403);
+        }
+
+        // Get the student list
+        $students = ClassRegistration::join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->join('students', 'class_registrations.student_id', '=', 'students.id')
+            ->where('classes.id', $data['id'])
+            ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
+            ->orderBy('students.username')
+            ->get();
+
+        // Generate URL for profile picture
+        foreach ($students as $student) {
+            $student->profile_picture = Storage::url($student->profile_picture);
+        }
+
+        // JSON Response
+        return response()->json([
+            'message' => "Student list of class with ID " . $data['id'] . " retrieved.",
+            'students' => $students
+        ], 200);
+    }
+
+    /* GET THE LIST OF STUDENT REGISTERED IN A AS AN ADMIN CLASS */
+    public function readAllAsAdmin(Request $request) : JsonResponse {
         // Validate request
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id']
@@ -106,7 +163,7 @@ class ClassRegistrationController extends Controller
             ->join('students', 'class_registrations.student_id', '=', 'students.id')
             ->where('classes.id', $data['id'])
             ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
-            ->orderByDesc('first_name')
+            ->orderBy('students.username')
             ->get();
 
         // Generate URL for profile picture
@@ -116,7 +173,7 @@ class ClassRegistrationController extends Controller
 
         // JSON Response
         return response()->json([
-            'message' => "Student list of class with ID " . $data['id'] . " retrived.",
+            'message' => "Student list of class with ID " . $data['id'] . " retrieved.",
             'students' => $students
         ], 200);
     }
