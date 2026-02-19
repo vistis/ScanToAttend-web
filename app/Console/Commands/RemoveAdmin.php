@@ -6,21 +6,21 @@ use App\Models\Admin;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
-class DeleteAdmin extends Command
+class RemoveAdmin extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'admin:delete {admin-id}';
+    protected $signature = 'admin:remove {admin-id}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Delete an admin account';
+    protected $description = 'Remove an admin account';
 
     /**
      * Execute the console command.
