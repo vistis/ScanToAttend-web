@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Admin;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Facades\Hash;
-use App\Models\Admin;
 
 class ChangeAdminPassword extends Command
 {
@@ -29,24 +29,24 @@ class ChangeAdminPassword extends Command
      */
     public function handle()
     {
-        // Validate input
+        /** Validate input. */
         $validator = Validator::make($this->arguments(), [
             'admin-id' => ['required', 'integer', 'exists:admins,id'],
             'new-password' => ['required', Password::defaults()]
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return $this->info($validator->messages());
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Hashify the new password
+        /** Hashify the new password. */
         $password = Hash::make($data['new-password']);
 
-        // Update the passowrd
+        /** Update the password of the given account. */
         Admin::where('id', $data['id'])
             ->update([
                 'password' => $password

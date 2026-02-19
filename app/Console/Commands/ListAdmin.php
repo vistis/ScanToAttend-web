@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Admin;
+use Illuminate\Console\Command;
 
 class ListAdmin extends Command
 {
@@ -26,13 +26,12 @@ class ListAdmin extends Command
      */
     public function handle()
     {
-        // Database query
         $admins = Admin::select('id', 'first_name', 'last_name', 'username', 'created_at')
             ->orderByDesc('first_name')
             ->get()
             ->toArray();
 
-        $this->table(['ID', 'First Name', 'Last Name', 'Username', 'Created At'], $admins);
+        $this->table(["ID", "First Name", "Last Name", "Username", "Created At"], $admins);
 
         return 0;
     }

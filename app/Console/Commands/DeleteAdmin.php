@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Admin;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Admin;
 
 class DeleteAdmin extends Command
 {
@@ -27,21 +27,21 @@ class DeleteAdmin extends Command
      */
     public function handle()
     {
-        // Validate input
+        /** Validate input. */
         $validator = Validator::make($this->arguments(), [
             'admin-id' => ['required', 'integer', 'exists:admins,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return $this->info($validator->messages());
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Delete the account
-        Admin::find($data['admin-id'])->delete();
+        /** Delete the account. */
+        Admin::where('id', $data['admin-id'])->delete();
 
         return $this->info("Admin account deleted.");
     }

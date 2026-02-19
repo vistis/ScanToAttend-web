@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Admin;
+use App\Models\Instructor;
+use App\Models\Student;
 use Illuminate\Console\Command;
 
 class UpdateMailDomain extends Command
@@ -25,27 +28,31 @@ class UpdateMailDomain extends Command
      */
     public function handle()
     {
+        /** Update the email for each user of all type. */
         $students = Student::select('username')->get();
-        foreach ($students as $student) {
+        foreach ($students as $student)
+        {
             Student::where('username', $student->username)->update([
                 'email' => generateEmail($student->username)
             ]);
         }
 
         $instructors = Instructor::select('username')->get();
-        foreach ($instructors as $instructor) {
+        foreach ($instructors as $instructor)
+        {
             Instructor::where('username', $instructor->username)->update([
                 'email' => generateEmail($instructor->username)
             ]);
         }
 
         $admins = Admin::select('username')->get();
-        foreach ($admins as $admin) {
+        foreach ($admins as $admin)
+        {
             Admin::where('username', $admin->username)->update([
                 'email' => generateEmail($instructor->username)
             ]);
         }
 
-        $this->info("Mail domain updated");
+        $this->info('Mail domain updated');
     }
 }

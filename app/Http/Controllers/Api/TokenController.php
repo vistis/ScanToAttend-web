@@ -3,111 +3,98 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Admin;
+use App\Models\Instructor;
+use App\Models\Student;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
-use App\Models\Student;
-use App\Models\Instructor;
-use App\Models\Admin;
 
 class TokenController extends Controller
 {
-    public function create(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Authenticate a user by providing a token.
+     */
+    public function create(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'username' => ['required', 'string', 'max:255'],
             'password' => ['required', Password::defaults()]
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Check if the username is a registered account
-        // Try student
+        /** Find the user with this username. */
         $query = Student::where('username', $data['username']);
-        if ($query->exists()) {
-            $account = $query->first();
+
+        if ($query->exists())
+        {
             $guard = 'student';
         }
-        else {
-            // Try instructor
+        else
+        {
             $query = Instructor::where('username', $data['username']);
-            if ($query->exists()) {
-                $account = $query->first();
+
+            if ($query->exists())
+            {
                 $guard = 'instructor';
             }
-
-            else {
-                // Try admin
+            else
+            {
                 $query = Admin::where('username', $data['username']);
-                if ($query->exists()) {
-                    $account = $query->first();
+                if ($query->exists())
+                {
                     $guard = 'admin';
                 }
-
-                // username is invalid
                 else {
                     return response()->json([
-                        'message' => "Errors detected.",
-                        'errors' => [
-                            'username' => [
-                                "The provided username is invalid."
-                            ]
-                        ]
-                    ], 400);
+                        'message' => "User not found."
+                    ], 404);
                 }
             }
         }
 
-        // Check password
-        if (!Hash::check($data['password'], $account->password)) {
-            // Failed to authenticate
+        $account = $query->first();
+
+        /** Check password. */
+        if (!Hash::check($data['password'], $account->password))
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => [
-                    'password' => [
-                        "The provided password is invalid."
-                    ]
-                ]
+                'message' => "Invalid password."
             ], 400);
         }
 
-        // Generate profile picture URL
-        if ($account->profile_picture) {
-            $account->profile_picture = Storage::url($account->profile_picture);
-        }
-
-        // Generate token
+        /** Generate access token. */
         $token = $account->createToken($guard)->plainTextToken;
 
-        // Authentication attempt successful
         return response()->json([
             'message' => "Logged in.",
-            'account' => $account,
             'guard' => $guard,
             'token' => $token
         ], 200);
     }
 
-    public function delete(Request $request) : JsonResponse {
-        // Delete the currently in-use token of the user making the request
+    /**
+     * Invalidate an access token.
+     */
+    public function delete(Request $request): JsonResponse
+    {
+        /** Delete the currently in-use token of the user making the request */
         $request->user()->currentAccessToken()->delete();
 
-        // Confirmation message
         return response()->json([
-            'message' => "Logged out.",
-            'account' => $request->user()
+            'message' => "Logged out."
         ], 200);
     }
 }

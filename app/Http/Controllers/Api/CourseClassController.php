@@ -3,48 +3,54 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Eloquent\Builder;
 use App\Models\CourseClass;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CourseClassController extends Controller
 {
     /* ADD CLASS */
-    public function create(Request $request) : JsonResponse {
-        // Validate request
+    public function create(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'course_id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Check for existing classes of this course
+        /** Check for existing classes of this course. */
         $query = CourseClass::where('course_id', $data['course_id']);
-        if ($query->exists()) {
+
+        if ($query->exists())
+        {
             $increment = 1;
             $records = $query->select('section')->orderBy('section')->get();
 
-            foreach ($records as $record) {
-                if ($record->section != $increment) {
+            foreach ($records as $record)
+            {
+                if ($record->section != $increment)
+                {
                     $data['section'] = $increment;
                     break;
                 }
-                else {
+                else
+                {
                     $increment++;
                 }
 
-                if (!$query->where('section', $record->section + 1)->exists()) {
+                if (!$query->where('section', $record->section + 1)->exists())
+                {
                     $data['section'] = $record->section + 1;
                     break;
                 }
@@ -54,331 +60,372 @@ class CourseClassController extends Controller
             $data['section'] = 1;
         }
 
-        // Create class
+        /** Create class. */
         $class = CourseClass::create($data);
 
         return response()->json([
-            'message' => "Class added.",
-            'class' => $class
+            'message' => "Class added."
         ], 200);
     }
 
-    /* GET CLASSES OF A COURSE */
-    public function readAllForCourse(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get list of class of a course.
+     */
+    public function readListOfCourse(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Database query
+        /** Get the class list. */
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('courses.id', $data['id'])
-            ->select('classes.id as id', 'classes.section as section', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
+            ->select(
+                'classes.id as id',
+                'classes.section as section',
+                'instructors.id as instructor_id',
+                'instructors.first_name as instructor_first_name',
+                'instructors.last_name as instructor_last_name'
+            )
             ->orderBy('section')
             ->get();
 
-        // Get class sessions
-        foreach ($classes as $class) {
-            $class->sessions = getClassSession($class->id);
+        /** Get sessions of each class. */
+        foreach ($classes as $class)
+        {
+            $class->sessions = getClassSessions($class->id);
         }
 
-        // Return data
         return response()->json([
-            'message' => "Class list of course with ID " . $data['id'] . " retrived.",
+            'message' => "Class list retrieved.",
             'classes' => $classes
         ], 200);
     }
 
-    /* GET CLASSES OF AN INSTRUCTOR */
-    public function readAllForInstructor(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get list of class an instructor teaches.
+     */
+    public function readListOfInstructor(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:instructors,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Database query
+        /** Get the class list. */
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('instructors.id', $data['id'])
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section')
+            ->select(
+                'classes.id as id',
+                'courses.id as course_id',
+                'courses.code as course_code',
+                'courses.name as course_name',
+                'classes.section as section'
+            )
+            ->orderBy('course_code')
             ->get();
 
-        // Get class sessions
-        foreach ($classes as $class) {
-            $class->sessions = getClassSession($class->id);
+        /** Get the sessions of each class. */
+        foreach ($classes as $class)
+        {
+            $class->sessions = getClassSessions($class->id);
         }
 
-        // Return data
         return response()->json([
-            'message' => "Class list of instructor with ID " . $data['id'] . " retrived.",
+            'message' => "Class list retrieved.",
             'classes' => $classes
         ], 200);
     }
 
-    /* GET CLASSES AS A INSTRUCTOR */
-    public function readAllAsInstructor(Request $request) : JsonResponse {
-        // Get user
+    /**
+     * Get the class list associated with the authenticated instructor.
+     */
+    public function readListAsInstructor(Request $request): JsonResponse
+    {
+        /** Get the instructor behind the request */
         $user = $request->user();
 
-        // Database query
+        /** Get the class list. */
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('instructors.id', $user->id)
-            ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section')
+            ->select(
+                'classes.id as id',
+                'courses.id as course_id',
+                'courses.code as course_code',
+                'courses.name as course_name',
+                'classes.section as section'
+            )
+            ->orderBy('course_code')
             ->get();
 
-        // Get class sessions
-        foreach ($classes as $class) {
-            $class->sessions = getClassSession($class->id);
+        /** Get the sessions of each class. */
+        foreach ($classes as $class)
+        {
+            $class->sessions = getClassSessions($class->id);
         }
 
-        // Return data
         return response()->json([
-            'message' => "Class list retrived.",
+            'message' => "Class list retrieved.",
             'classes' => $classes
         ], 200);
     }
 
-    /* GET CLASSES OF A STUDENT */
-    public function readAllForStudent(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get the class list of a student that they are registered in.
+     */
+    public function readListOfStudent(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Database query
+        /** Get the class list. */
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->join('class_registrations', 'classes.id', '=', 'class_registrations.class_id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('class_registrations.student_id', $data['id'])
-            ->select('classes.id as id', 'classes.section as section', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
+            ->select(
+                'classes.id as id',
+                'classes.section as section',
+                'courses.id as course_id',
+                'courses.code as course_code',
+                'courses.name as course_name',
+                'instructors.id as instructor_id',
+                'instructors.first_name as instructor_first_name',
+                'instructors.last_name as instructor_last_name'
+            )
+            ->orderBy('course_code')
             ->get();
 
-        // Get class sessions
-        foreach ($classes as $class) {
-            $class->sessions = getClassSession($class->id);
+        /** Get the sessions of each class. */
+        foreach ($classes as $class)
+        {
+            $class->sessions = getClassSessions($class->id);
         }
 
-        // Return data
         return response()->json([
-            'message' => "Class list of student with ID " . $data['id'] . " retrived.",
+            'message' => "Class list retrieved.",
             'classes' => $classes
         ], 200);
     }
 
-    /* GET CLASSES AS A STUDENT */
-    public function readAllAsStudent(Request $request) : JsonResponse {
-        // Get user
+    /**
+     * Get the class list associated with the authenticated student.
+     */
+    public function readListAsStudent(Request $request): JsonResponse
+    {
+        /** Get student behind the request. */
         $user = $request->user();
 
-        // Database query
+        /** Get the class list. */
         $classes = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->join('class_registrations', 'classes.id', '=', 'class_registrations.class_id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('class_registrations.student_id', $user->id)
-            ->select('classes.id as id', 'classes.section as section', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name')
+            ->select(
+                'classes.id as id',
+                'classes.section as section',
+                'courses.id as course_id',
+                'courses.code as course_code',
+                'courses.name as course_name',
+                'instructors.id as instructor_id',
+                'instructors.first_name as instructor_first_name',
+                'instructors.last_name as instructor_last_name'
+            )
+            ->orderBy('course_code')
             ->get();
 
-        // Get class sessions
-        foreach ($classes as $class) {
-            $class->sessions = getClassSession($class->id);
+        /** Get the sessions of each class */
+        foreach ($classes as $class)
+        {
+            $class->sessions = getClassSessions($class->id);
         }
 
-        // Return data
         return response()->json([
             'message' => "Class list retrived.",
             'classes' => $classes
         ], 200);
     }
 
-    /* GET CLASS INFORMATION */
-    public function readOne(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get the information of a specific class.
+     */
+    public function read(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Fetch data
+        /** Get the class. */
         $class = CourseClass::join('courses', 'classes.course_id', '=', 'courses.id')
             ->leftJoin('instructors', 'instructors.id', '=', 'classes.instructor_id')
             ->where('classes.id', $data['id'])
             ->select('classes.id as id', 'courses.id as course_id', 'courses.code as course_code', 'courses.name as course_name', 'classes.section as section', 'instructors.id as instructor_id', 'instructors.first_name as instructor_first_name', 'instructors.last_name as instructor_last_name', 'classes.created_at as created_at', 'classes.updated_at as updated_at')
             ->first();
 
-        // Get class sessions
-        $class->sessions = getClassSession($data['id']);
+        /** Get the sessions of the class. */
+        $class->sessions = getClassSessions($data['id']);
 
-        // Respond as JSON
         return response()->json([
             'message' => "Class information retrieved.",
             'class' => $class
         ], 200);
     }
 
-    /* ASSIGN INSTRUCTOR TO CLASS */
-    public function updateAssign(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Assign an instructor to a class.
+     */
+    public function updateAssign(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id'],
             'instructor_id' => ['integer', 'exists:instructors,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Check for overlapping instructor schedule
-        $sessions = getClassSession($data['id']);
+        /** Check for overlaps with instructor schedule. */
+        $sessions = getClassSessions($data['id']);
 
-        foreach ($sessions as $session) {
+        foreach ($sessions as $session)
+        {
             if (CourseClass::join('class_sessions', 'class_sessions.class_id', '=', 'classes.id')
                 ->where('classes.instructor_id', $data['instructor_id'])
                 ->where('class_sessions.day', $session->day)
-                ->where(function (Builder $query) use ($session) {
+                ->where(function (Builder $query) use ($session)
+                {
                     $query->where('class_sessions.start_at', '<', $session->end_at)
                         ->where('class_sessions.end_at', '>', $session->start_at);
                 })
                 ->exists()
-            ) {
+            )
+            {
                 return response()->json([
-                    'message' => "Errors detected.",
-                    'errors' => [
-                        'class_session' => [
-                            "The instructor schedule conflicts with this class."
-                        ]
-                    ]
-                ], 400);
+                    'message' => "The instructor schedule conflicts with this class."
+                ], 409);
             }
         }
 
-        // Update information
+        /** Update the class instructor. */
         CourseClass::where('id', $data['id'])
             ->update($data);
 
-        // Get the updated information
-        $class = CourseClass::find($data['id']);
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Class updated.",
-            'class' => $class
+            'message' => "Assigned instructor to class."
         ]);
     }
 
-    /* UNASSIGN INSTRUCTOR FROM CLASS */
-    public function updateUnassign(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Set class to having no instructor.
+     */
+    public function updateUnassign(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Set instructor to null
+        /** Set instructor to null. */
         CourseClass::where('id', $data['id'])
             ->update([
                 'instructor_id' => null
             ]);
 
-        // Get the updated information
-        $class = CourseClass::find($data['id']);
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Class updated.",
-            'class' => $class
-        ]);
+            'message' => "The class now has no instructor.",
+        ], 200);
     }
 
-    /* DELETE CLASS */
-    public function delete(Request $request) {
-        // Validate request
+    /**
+     * Remove a class (also remove its sessions, and registration record.)
+     */
+    public function delete(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Find the course
-        $class = CourseClass::find($data['id']);
+        /** Delete the class.. */
+        CourseClass::where('id', $data['id'])->delete();
 
-        // Delete the course
-        $class->delete();
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Course deleted.",
-            'course' => $class
+            'message' => "Class deleted."
         ], 200);
     }
 }

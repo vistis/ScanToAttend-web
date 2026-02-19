@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CourseClass;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,9 +13,12 @@ use Illuminate\Validation\Rules\Password;
 
 class StudentController extends Controller
 {
-    /* REGISTER STUDENT */
-    public function create(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Add a student account,
+     */
+    public function create(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'fingerprint_id' => ['required', 'integer', 'unique:students,fingerprint_id'],
             'first_name' => ['required', 'string', 'max:255'],
@@ -23,91 +27,183 @@ class StudentController extends Controller
             'password' => ['required', Password::defaults()]
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Set the data property for the account. */
         $data = $validator->validated();
-
-        // Generate username
         $data['username'] = generateUsername($data['first_name'], $data['last_name']);
-
-        // Generate email
         $data['email'] = generateEmail($data['username']);
+        $data['profile_picture'] = Storage::putFileAs('student',
+            $request->file('profile_picture'),
+            $data['username'] . '-' . time() . '.' . $request->profile_picture->extension()
+        );
 
-        // Store image
-        $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $data['username'] . '-' . time() . '.' . $request->profile_picture->extension());
-
-        // Create the student account
-        $account = Student::create($data);
-
-        // Return image link
-        $account->profile_picture = Storage::url($account->profile_picture);
+        /** Create the account. */
+        Student::create($data);
 
         return response()->json([
-            'message' => "Student registered.",
-            'student' => $account
+            'message' => "Student account added."
         ], 200);
     }
 
-    /* STUDENT LIST */
-    public function readAll() : JsonResponse {
-        // Database query
+    /**
+     * Get the list of all student.
+     */
+    public function readList(): JsonResponse
+    {
         $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
             ->orderByDesc('first_name')
             ->get();
 
-        // Generate URL for profile picture
-        foreach ($accounts as $account) {
+            /** Generate URL for profile picture of each student. */
+        foreach ($accounts as $account)
+        {
             $account->profile_picture = Storage::url($account->profile_picture);
         }
 
-        // JSON Response
         return response()->json([
-            'meesage' => "Students list retrieved.",
+            'meesage' => "Student list retrieved.",
             'students' => $accounts
         ], 200);
     }
 
-    /* STUDENT INFORMATION */
-    public function readOne(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get the information of a student.
+     */
+    public function read(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Database query
+        /** Fetch the information. */
         $account = Student::find($data['id']);
 
-        // Generate image URL
+        /** Generate URL for profile picture. */
         $account->profile_picture = Storage::url($account->profile_picture);
 
-        // JSON Response
         return response()->json([
             'message' => "Student information retrieved.",
             'student' => $account
         ], 200);
     }
 
-    /* UPDATE STUDENT */
-    public function update(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get the list of student registered in a given class as an authenticated instructor.
+     */
+    public function readListOfClassAsInstructor(Request $request): JsonResponse
+    {
+        /** Validate request */
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        if ($validator->fails())
+        {
+            return response()->json([
+                'message' => $validator->messages()
+            ], 400);
+        }
+
+        /** Get the validated data */
+        $data = $validator->validated();
+
+        /** Get the instructor behind the request. */
+        $instructor = $request->user();
+
+        /** Check if the instructor teaches this class. */
+        if (!CourseClass::where('id', $data['id'])
+            ->where('instructor_id', $instructor->id)
+            ->exists()
+        )
+        {
+            return response()->json([
+                'message' => "You do not have access to this class."
+            ], 401);
+        }
+
+        /** Get the student list. */
+        $students = Student::join('class_registrations', 'class_registrations.student_id', '=', 'students.id')
+            ->join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->where('classes.id', $data['id'])
+            ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
+            ->orderBy('students.username')
+            ->get();
+
+        /** Generate URL for the profile picture of each student. */
+        foreach ($students as $student)
+        {
+            $student->profile_picture = Storage::url($student->profile_picture);
+        }
+
+        return response()->json([
+            'message' => "Student list retrieved.",
+            'students' => $students
+        ], 200);
+    }
+
+    /**
+     * Get the list of student registered in a given class as an authenticated admin.
+     */
+    public function readListOfClassAsAdmin(Request $request): JsonResponse
+    {
+        /** Validate request. */
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:classes,id']
+        ]);
+
+        if ($validator->fails())
+        {
+            return response()->json([
+                'message' => $validator->messages()
+            ], 400);
+        }
+
+        /** Get the validated data. */
+        $data = $validator->validated();
+
+        /** Get the student list. */
+        $students = Student::join('class_registrations', 'class_registrations.student_id', '=', 'students.id')
+            ->join('classes', 'class_registrations.class_id', '=', 'classes.id')
+            ->where('classes.id', $data['id'])
+            ->select('students.id as id', 'students.first_name as first_name', 'students.last_name as last_name', 'students.profile_picture as profile_picture', 'students.email as email')
+            ->orderBy('students.username')
+            ->get();
+
+        /** Generate URL for the profile picture of each student. */
+        foreach ($students as $student)
+        {
+            $student->profile_picture = Storage::url($student->profile_picture);
+        }
+
+        return response()->json([
+            'message' => "Student list retrieved.",
+            'students' => $students
+        ], 200);
+    }
+
+    /**
+     * Update the profile picture and/or password and/or fingerprint of a student account.
+     */
+    public function update(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id'],
             'fingerprint_id' => ['integer', 'unique:students,fingerprint_id'],
@@ -115,81 +211,74 @@ class StudentController extends Controller
             'password' => [Password::defaults()]
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Find the account
+        /** Find the account. */
         $account = Student::find($data['id']);
 
-        // If the request contain a new profile picture
-        if ($request->hasFile('profile_picture')) {
-            // Store new picture
-            $data['profile_picture'] = Storage::putFileAs('student', $request->file('profile_picture'), $account->username . '-' . time() . '.' . $request->profile_picture->extension());
-
-            // Delete old picture
+        /** If update the profile picture, delete the old one. */
+        if ($request->hasFile('profile_picture'))
+        {
+            $data['profile_picture'] = Storage::putFileAs('student',
+                $request->file('profile_picture'),
+                $account->username . '-' . time() . '.' . $request->profile_picture->extension()
+            );
             Storage::delete($account->profile_picture);
         }
 
-        // Hashify the password
-        if ($data['password']) {
+        /** Hashify the password */
+        if ($request->password)
+        {
             $data['password'] = Hash::make($data['password']);
         }
 
-        // Update student account
+        /** Update the account. */
         $account->update($data);
 
-        // Grab the updated account
-        $account = Student::find($data['id']);
-
-        // Generate profile picture URL
-        $account->profile_picture = Storage::url($account->profile_picture);
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Student updated.",
-            'student' => $account
+            'message' => "Student account updated."
         ], 200);
     }
 
-    /* DELETE STUDENT */
-    public function delete(Request $request) {
-        // Validate request
+    /**
+     * Remove an student account.
+     */
+    public function delete(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:students,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Get the account
+        /** Find the account. */
         $account = Student::find($data['id']);
 
-        // Delete profile picture file
+        /** Delete the profile picture file. */
         Storage::delete($account->profile_picture);
 
-        // Delete account from database
+        /** Delete the account from database. */
         $account->delete();
 
-        // Respond as JSON
         return response()->json([
-            'message' => "Student deleted.",
-            'student' => $account
+            'message' => "Student account removed."
         ], 200);
     }
 }

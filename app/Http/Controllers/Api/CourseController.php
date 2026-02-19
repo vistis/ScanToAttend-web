@@ -3,143 +3,141 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Course;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
-    /* ADD COURSE */
-    public function create(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Add a course.
+     */
+    public function create(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'code' => ['required', 'string', 'max:255', 'unique:courses,code'],
             'name' => ['required', 'string', 'max:255', 'unique:courses,name']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Create course
-        $course = Course::create($data);
+        /** Add course to database. */
+        Course::create($data);
 
         return response()->json([
-            'message' => "Course added.",
-            'course' => $course
+            'message' => "Course added."
         ], 200);
     }
 
-    /* GET COURSE LIST */
-    public function readAll() : JsonResponse {
-        // Database query
+    /**
+     * Get the list of courses.
+     */
+    public function readList(): JsonResponse
+    {
         $courses = Course::select('id', 'code', 'name')->get();
 
-        // Respond as JSON
         return response()->json([
             'message' => "Course list retrieved.",
             'courses' => $courses,
         ], 200);
     }
 
-    /* GET COURSE INFORMATION */
-    public function readOne(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Get information of a course.
+     */
+    public function read(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Fetch data
+        /** Retrieve the information. */
         $course = Course::find($data['id']);
 
-        // Respond as JSON
         return response()->json([
             'message' => "Course information retrieved.",
             'course' => $course
         ], 200);
     }
 
-    /* UPDATE COURSE */
-    public function update(Request $request) : JsonResponse {
-        // Validate request
+    /**
+     * Update the information of a course.
+     */
+    public function update(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:courses,id'],
             'code' => ['string', 'max:255', 'unique:courses,code'],
             'name' => ['string', 'max:255', 'unique:courses,name']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Update information
+        /** Update the course information. */
         Course::where('id', $data['id'])
             ->update($data);
 
-        // Get the updated information
-        $course = Course::find($data['id']);
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Course updated.",
-            'course' => $course
+            'message' => "Course updated."
         ]);
     }
 
-    /* DELETE COURSE */
-    public function delete(Request $request) {
-        // Validate request
+    /**
+     * Remove a course (also remove its classes).
+     */
+    public function delete(Request $request): JsonResponse
+    {
+        /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:courses,id']
         ]);
 
-        // Return error message if the validation fails
-        if ($validator->fails()) {
+
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => "Errors detected.",
-                'errors' => $validator->messages()
+                'message' => $validator->messages()
             ], 400);
         }
 
-        // Get the validated data
+        /** Get the validated data. */
         $data = $validator->validated();
 
-        // Find the course
-        $course = Course::find($data['id']);
+        /** Delete the course from the database. */
+        Course::where('id', $data['id'])->delete();
 
-        // Delete the course
-        $course->delete();
-
-        // Respond as JSON
         return response()->json([
-            'message' => "Course deleted.",
-            'course' => $course
+            'message' => "Course removed."
         ], 200);
     }
 }
