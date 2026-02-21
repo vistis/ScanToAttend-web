@@ -326,7 +326,7 @@ class CourseClassController extends Controller
         /** Validate request. */
         $validator = Validator::make($request->all(), [
             'id' => ['required', 'integer', 'exists:classes,id'],
-            'instructor_id' => ['integer', 'exists:instructors,id']
+            'instructor_id' => ['required', 'integer', 'exists:instructors,id']
         ]);
 
         if ($validator->fails())
