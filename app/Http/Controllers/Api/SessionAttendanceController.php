@@ -56,12 +56,16 @@ class SessionAttendanceController extends Controller
         }
 
         /** Check for session the student is attending. */
+        $earlyGraceMinutes = 5;
+        $earliestCheckIn = Carbon::parse($checkedInAt)->copy()
+            ->addMinutes($earlyGraceMinutes)
+            ->toTimeString();
         $session = ClassSession::join('class_registrations', 'class_sessions.class_id', '=', 'class_registrations.class_id')
             ->where('class_registrations.student_id', '=', $student->id)
             ->where('class_sessions.day', '=', $day)
-            ->where(function (Builder $query) use ($checkedInAt)
+            ->where(function (Builder $query) use ($checkedInAt, $earliestCheckIn)
             {
-                $query->where('class_sessions.start_at', '<=', $checkedInAt)
+                $query->where('class_sessions.start_at', '<=', $earliestCheckIn)
                     ->where('class_sessions.end_at', '>=', $checkedInAt);
             })
             ->select(
@@ -76,7 +80,8 @@ class SessionAttendanceController extends Controller
         if(!$session)
         {
             return response()->json([
-                'message' => "Failed to record. No session to attend right now."
+                'message' => "Failed to record. No session to attend right now.",
+                'username' => $student->username
             ], 400);
         }
 
@@ -88,7 +93,8 @@ class SessionAttendanceController extends Controller
         )
         {
             return response()->json([
-                'message' => "Already checked in for this session."
+                'message' => "Already checked in for this session.",
+                'username' => $student->username
             ], 400);
         }
 
@@ -125,8 +131,9 @@ class SessionAttendanceController extends Controller
 
         return response()->json([
             'message' => $student->username . " checked in.",
-            'session_info' => $sessionInfo,
-        ]);
+            'username' => $student->username,
+            'session_info' => $sessionInfo
+        ], 200);
     }
 
     /**
@@ -258,6 +265,64 @@ class SessionAttendanceController extends Controller
     }
 
     /**
+    * Update the attendance status of a student for a session (instructor only).
+    */
+    public function updateStatus(Request $request): JsonResponse
+    {
+        /** Validate request. */
+        $validator = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:session_attendance,id'],
+            'status' => ['required', 'string', 'in:Present,Tardy,Absent']
+        ]);
+
+        if ($validator->fails())
+        {
+            return response()->json([
+                'message' => $validator->messages()
+            ], 400);
+        }
+
+        /** Get the validated data. */
+        $data = $validator->validated();
+
+        /** Get the instructor behind the request. */
+        $instructor = $request->user();
+
+        /** Get the attendance record. */
+        $attendance = SessionAttendance::find($data['id']);
+
+        /** Verify the instructor teaches the class this attendance belongs to. */
+        $session = ClassSession::find($attendance->session_id);
+
+        if (!$session)
+        {
+            return response()->json([
+                'message' => "Session not found."
+            ], 404);
+        }
+
+        $class = CourseClass::where('id', $session->class_id)
+            ->where('instructor_id', $instructor->id)
+            ->first();
+
+        if (!$class)
+        {
+            return response()->json([
+                'message' => "You do not have access to this attendance record."
+            ], 401);
+        }
+
+        /** Update the status. */
+        $attendance->update([
+            'status' => $data['status']
+        ]);
+
+        return response()->json([
+            'message' => "Attendance status updated."
+        ], 200);
+    }
+
+    /**
      * Get the attendance record of a particular session.
      */
     public function readListOfSession (Request $request): JsonResponse
@@ -331,9 +396,11 @@ class SessionAttendanceController extends Controller
 
             if ($entry)
             {
+                $student->attendance_id = $entry->id;
                 $student->status = $entry->status;
             }
             else {
+                $student->attendance_id = null;
                 $student->status = "Absent";
             }
 

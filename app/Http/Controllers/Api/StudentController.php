@@ -7,8 +7,9 @@ use App\Models\CourseClass;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
 class StudentController extends Controller
@@ -20,7 +21,7 @@ class StudentController extends Controller
     {
         /** Validate request. */
         $validator = Validator::make($request->all(), [
-            'fingerprint_id' => ['required', 'integer', 'unique:students,fingerprint_id'],
+            'fingerprint_id' => ['nullable', 'integer', 'unique:students,fingerprint_id'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'profile_picture' => ['required', 'image', 'max:2048'],
@@ -56,7 +57,7 @@ class StudentController extends Controller
      */
     public function readList(): JsonResponse
     {
-        $accounts = Student::select('id', 'first_name', 'last_name', 'profile_picture', 'email')
+        $accounts = Student::select('id', 'fingerprint_id', 'first_name', 'last_name', 'profile_picture', 'email')
             ->orderByDesc('first_name')
             ->get();
 

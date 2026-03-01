@@ -15,7 +15,7 @@ return new class extends Migration
 
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('fingerprint_id')->unique();
+            $table->bigInteger('fingerprint_id')->nullable()->unique();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('username');

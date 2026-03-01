@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Validator;
 
 class CourseClassController extends Controller
 {
-    /* ADD CLASS */
+    /**
+     * Add a class.
+     */
     public function create(Request $request): JsonResponse
     {
         /** Validate request. */
