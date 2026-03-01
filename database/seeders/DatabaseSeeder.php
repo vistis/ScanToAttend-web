@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
                 'username' => $username,
                 'email' => generateEmail($username),
                 'password' => 'password',
+                'profile_picture' => 'user_default.svg'
             ]);
         }
 
@@ -79,6 +80,7 @@ class DatabaseSeeder extends Seeder
                 'username' => $username,
                 'email' => generateEmail($username),
                 'password' => 'password',
+                'profile_picture' => 'user_default.svg'
             ]);
         }
 

@@ -232,7 +232,11 @@ class StudentController extends Controller
                 $request->file('profile_picture'),
                 $account->username . '-' . time() . '.' . $request->profile_picture->extension()
             );
-            Storage::delete($account->profile_picture);
+
+            if ($account->profile_picture != "user_default.svg")
+            {
+                Storage::delete($account->profile_picture);
+            }
         }
 
         /** Hashify the password */
@@ -273,7 +277,10 @@ class StudentController extends Controller
         $account = Student::find($data['id']);
 
         /** Delete the profile picture file. */
-        Storage::delete($account->profile_picture);
+        if ($account->profile_picture != "user_default.svg")
+        {
+            Storage::delete($account->profile_picture);
+        }
 
         /** Delete the account from database. */
         $account->delete();

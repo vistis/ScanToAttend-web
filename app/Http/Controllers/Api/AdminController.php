@@ -40,7 +40,7 @@ class AdminController extends Controller
             $user->username . '-' . time() . '.' . $request->profile_picture->extension()
         );
 
-        if (!$user->profile_picture)
+        if (!$user->profile_picture || $user->profile_picture != "user_default.svg")
         {
             Storage::delete($user->profile_picture);
         }
