@@ -88,11 +88,11 @@ class DatabaseSeeder extends Seeder
          * ── Courses (5) ──
          */
         $courses = [
-            ['code' => 'CS101', 'name' => 'Introduction to Computer Science'],
+            ['code' => 'CS100', 'name' => 'CS Orientation'],
             ['code' => 'CS201', 'name' => 'Data Structures and Algorithms'],
-            ['code' => 'CS301', 'name' => 'Database Systems'],
-            ['code' => 'CS397', 'name' => 'IoT Systems'],
-            ['code' => 'MATH201', 'name' => 'Linear Algebra'],
+            ['code' => 'CS226', 'name' => 'Database Management'],
+            ['code' => 'CS397', 'name' => 'Internet of Everything'],
+            ['code' => 'CS311', 'name' => 'Discrete Mathematics'],
         ];
 
         foreach ($courses as $data)
