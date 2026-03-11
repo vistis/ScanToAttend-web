@@ -52,7 +52,6 @@ async function handleLogin() {
 </script>
 
 <template>
-<<<<<<< HEAD
   <div class="w-full max-w-sm mx-auto px-4">
     <!-- Logo -->
     <div class="text-center mb-8">
@@ -72,46 +71,17 @@ async function handleLogin() {
       <div
         v-if="error"
         class="mb-4 p-3 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-sm ring-1 ring-inset ring-rose-600/10 dark:ring-rose-500/20"
-=======
-  <div class="w-full max-w-md mx-auto">
-    <div class="card">
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-primary-600">
-          ScanToAttend
-        </h1>
-        <p class="mt-2 text-sm text-gray-500">
-          IoT-Based Classroom Attendance System
-        </p>
-      </div>
-
-      <!-- Error -->
-      <div
-        v-if="error"
-        class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm"
->>>>>>> origin/frontend
       >
         {{ error }}
       </div>
 
       <!-- Form -->
       <form
-<<<<<<< HEAD
         class="space-y-4"
         @submit.prevent="handleLogin"
       >
         <div>
           <label for="username" class="label">Username</label>
-=======
-        class="space-y-5"
-        @submit.prevent="handleLogin"
-      >
-        <div>
-          <label
-            for="username"
-            class="label"
-          >Username</label>
->>>>>>> origin/frontend
           <input
             id="username"
             v-model="form.username"
@@ -124,14 +94,7 @@ async function handleLogin() {
         </div>
 
         <div>
-<<<<<<< HEAD
           <label for="password" class="label">Password</label>
-=======
-          <label
-            for="password"
-            class="label"
-          >Password</label>
->>>>>>> origin/frontend
           <input
             id="password"
             v-model="form.password"
@@ -144,20 +107,12 @@ async function handleLogin() {
 
         <button
           type="submit"
-<<<<<<< HEAD
           class="btn-primary w-full justify-center"
-=======
-          class="btn-primary w-full"
->>>>>>> origin/frontend
           :disabled="loading"
         >
           <span
             v-if="loading"
-<<<<<<< HEAD
             class="animate-spin rounded-full h-4 w-4 border-2 border-primary-300 border-t-white mr-2"
-=======
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
->>>>>>> origin/frontend
           />
           {{ loading ? 'Signing in...' : 'Sign In' }}
         </button>

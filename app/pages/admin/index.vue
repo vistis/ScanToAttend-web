@@ -39,7 +39,6 @@ onMounted(async () => {
 
 <template>
   <div>
-<<<<<<< HEAD
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
         Admin Dashboard
@@ -50,15 +49,6 @@ onMounted(async () => {
     <LoadingState :loading="loading">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         <NuxtLink to="/admin/students" class="group">
-=======
-    <h1 class="text-2xl font-bold mb-6">
-      Admin Dashboard
-    </h1>
-
-    <LoadingState :loading="loading">
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <NuxtLink to="/admin/students">
->>>>>>> origin/frontend
           <StatCard
             title="Students"
             :value="counts.students"
@@ -66,11 +56,7 @@ onMounted(async () => {
             color="blue"
           />
         </NuxtLink>
-<<<<<<< HEAD
         <NuxtLink to="/admin/instructors" class="group">
-=======
-        <NuxtLink to="/admin/instructors">
->>>>>>> origin/frontend
           <StatCard
             title="Instructors"
             :value="counts.instructors"
@@ -78,11 +64,7 @@ onMounted(async () => {
             color="green"
           />
         </NuxtLink>
-<<<<<<< HEAD
         <NuxtLink to="/admin/courses" class="group">
-=======
-        <NuxtLink to="/admin/courses">
->>>>>>> origin/frontend
           <StatCard
             title="Courses"
             :value="counts.courses"
@@ -90,11 +72,7 @@ onMounted(async () => {
             color="yellow"
           />
         </NuxtLink>
-<<<<<<< HEAD
         <NuxtLink to="/admin/classes" class="group">
-=======
-        <NuxtLink to="/admin/classes">
->>>>>>> origin/frontend
           <StatCard
             title="Classes"
             :value="counts.classes"
@@ -102,11 +80,7 @@ onMounted(async () => {
             color="gray"
           />
         </NuxtLink>
-<<<<<<< HEAD
         <NuxtLink to="/admin/enrollment" class="group">
-=======
-        <NuxtLink to="/admin/enrollment">
->>>>>>> origin/frontend
           <StatCard
             title="Enrollment"
             :value="'FP'"

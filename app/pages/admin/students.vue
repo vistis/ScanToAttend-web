@@ -8,10 +8,7 @@ definePageMeta({
 })
 
 const { apiFetch } = useApi()
-<<<<<<< HEAD
 const toast = useToast()
-=======
->>>>>>> origin/frontend
 const loading = ref(true)
 const students = ref<any[]>([])
 const showAddModal = ref(false)
@@ -19,7 +16,6 @@ const showEditModal = ref(false)
 const editingStudent = ref<any>(null)
 const saving = ref(false)
 const error = ref('')
-<<<<<<< HEAD
 const searchQuery = ref('')
 const confirmDelete = ref(false)
 const deleteId = ref(0)
@@ -32,8 +28,6 @@ const filteredStudents = computed(() => {
     return name.includes(q) || (s.email || '').toLowerCase().includes(q)
   })
 })
-=======
->>>>>>> origin/frontend
 
 const addForm = reactive({
   first_name: '',
@@ -80,10 +74,7 @@ async function addStudent() {
     await apiFetch('/student/add', { method: 'POST', body: formData })
     showAddModal.value = false
     Object.assign(addForm, { first_name: '', last_name: '', password: '', profile_picture: null })
-<<<<<<< HEAD
     toast.success('Student added.')
-=======
->>>>>>> origin/frontend
     await loadStudents()
   }
   catch (err: any) {
@@ -114,10 +105,7 @@ async function updateStudent() {
   try {
     await apiFetch('/student/update', { method: 'PATCH', body: formData })
     showEditModal.value = false
-<<<<<<< HEAD
     toast.success('Student updated.')
-=======
->>>>>>> origin/frontend
     await loadStudents()
   }
   catch (err: any) {
@@ -129,7 +117,6 @@ async function updateStudent() {
 }
 
 async function deleteStudent(id: number) {
-<<<<<<< HEAD
   deleteId.value = id
   confirmDelete.value = true
 }
@@ -145,16 +132,6 @@ async function executeDelete() {
   }
   finally {
     confirmDelete.value = false
-=======
-  if (!confirm('Are you sure you want to delete this student?')) return
-
-  try {
-    await apiFetch('/student/remove', { method: 'DELETE', body: { id } })
-    await loadStudents()
-  }
-  catch {
-    //
->>>>>>> origin/frontend
   }
 }
 
@@ -167,7 +144,6 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
 
 <template>
   <div>
-<<<<<<< HEAD
     <div class="flex justify-between items-center mb-8">
       <div>
         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
@@ -175,29 +151,18 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
         </h1>
         <p class="text-slate-500 dark:text-slate-400 mt-1">Manage student accounts</p>
       </div>
-=======
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">
-        Students
-      </h1>
->>>>>>> origin/frontend
       <button
         class="btn-primary"
         @click="showAddModal = true"
       >
         <Icon
           name="heroicons:plus"
-<<<<<<< HEAD
           class="w-4 h-4 mr-1.5"
-=======
-          class="w-4 h-4 mr-1"
->>>>>>> origin/frontend
         />
         Add Student
       </button>
     </div>
 
-<<<<<<< HEAD
     <!-- Search -->
     <div class="relative mb-6">
       <Icon name="heroicons:magnifying-glass" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -212,11 +177,6 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
     <div
       v-if="error"
       class="mb-4 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 text-sm"
-=======
-    <div
-      v-if="error"
-      class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm"
->>>>>>> origin/frontend
     >
       {{ error }}
     </div>
@@ -231,7 +191,6 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
         v-else
         class="card overflow-hidden p-0"
       >
-<<<<<<< HEAD
         <table class="min-w-full">
           <thead>
             <tr class="border-b border-slate-100 dark:border-slate-700">
@@ -245,85 +204,43 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
                 Fingerprint
               </th>
               <th class="px-6 py-3.5 text-right text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-=======
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Student
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Email
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Fingerprint
-              </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
->>>>>>> origin/frontend
                 Actions
               </th>
             </tr>
           </thead>
-<<<<<<< HEAD
           <tbody>
             <tr
               v-for="student in filteredStudents"
               :key="student.id"
               class="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
-=======
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr
-              v-for="student in students"
-              :key="student.id"
->>>>>>> origin/frontend
             >
               <td class="px-6 py-4">
                 <div class="flex items-center">
                   <img
                     v-if="student.profile_picture"
                     :src="student.profile_picture"
-<<<<<<< HEAD
                     class="h-9 w-9 flex-shrink-0 rounded-xl mr-3 object-cover"
                   >
                   <div
                     v-else
                     class="h-9 w-9 flex-shrink-0 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-500/20 dark:to-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center mr-3 text-sm font-bold"
-=======
-                    class="h-8 w-8 flex-shrink-0 rounded-full mr-3"
-                  >
-                  <div
-                    v-else
-                    class="h-8 w-8 flex-shrink-0 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 text-sm font-medium"
->>>>>>> origin/frontend
                   >
                     {{ student.first_name?.[0] }}{{ student.last_name?.[0] }}
                   </div>
                   <div>
-<<<<<<< HEAD
                     <p class="text-sm font-semibold text-slate-900 dark:text-white">
-=======
-                    <p class="text-sm font-medium text-gray-900">
->>>>>>> origin/frontend
                       {{ student.first_name }} {{ student.last_name }}
                     </p>
                   </div>
                 </div>
               </td>
-<<<<<<< HEAD
               <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-=======
-              <td class="px-6 py-4 text-sm text-gray-500">
->>>>>>> origin/frontend
                 {{ student.email }}
               </td>
               <td class="px-6 py-4">
                 <span
                   v-if="student.fingerprint_id"
-<<<<<<< HEAD
                   class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20"
-=======
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"
->>>>>>> origin/frontend
                 >
                   <Icon
                     name="heroicons:finger-print"
@@ -333,32 +250,20 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
                 </span>
                 <span
                   v-else
-<<<<<<< HEAD
                   class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20"
-=======
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700"
->>>>>>> origin/frontend
                 >
                   Not enrolled
                 </span>
               </td>
               <td class="px-6 py-4 text-right space-x-2">
                 <button
-<<<<<<< HEAD
                   class="btn-secondary text-sm !py-2 !px-3"
-=======
-                  class="btn-secondary text-sm"
->>>>>>> origin/frontend
                   @click="openEdit(student)"
                 >
                   Edit
                 </button>
                 <button
-<<<<<<< HEAD
                   class="btn-danger text-sm !py-2 !px-3"
-=======
-                  class="btn-danger text-sm"
->>>>>>> origin/frontend
                   @click="deleteStudent(student.id)"
                 >
                   Delete
@@ -372,7 +277,6 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
 
     <!-- Add Modal -->
     <Teleport to="body">
-<<<<<<< HEAD
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="opacity-0"
@@ -419,33 +323,11 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
                 <input
                   v-model="addForm.password"
                   type="password"
-=======
-      <div
-        v-if="showAddModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        @click.self="showAddModal = false"
-      >
-        <div class="card w-full max-w-md mx-4">
-          <h2 class="text-lg font-bold mb-4">
-            Add Student
-          </h2>
-          <form
-            class="space-y-4"
-            @submit.prevent="addStudent"
-          >
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="label">First Name</label>
-                <input
-                  v-model="addForm.first_name"
-                  type="text"
->>>>>>> origin/frontend
                   class="input"
                   required
                 >
               </div>
               <div>
-<<<<<<< HEAD
                 <label class="label">Profile Picture</label>
                 <input
                   type="file"
@@ -474,59 +356,10 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
           </div>
         </div>
       </Transition>
-=======
-                <label class="label">Last Name</label>
-                <input
-                  v-model="addForm.last_name"
-                  type="text"
-                  class="input"
-                  required
-                >
-              </div>
-            </div>
-            <div>
-              <label class="label">Password</label>
-              <input
-                v-model="addForm.password"
-                type="password"
-                class="input"
-                required
-              >
-            </div>
-            <div>
-              <label class="label">Profile Picture</label>
-              <input
-                type="file"
-                accept="image/*"
-                class="input"
-                @change="(e) => handleFileInput(e, 'add')"
-              >
-            </div>
-            <div class="flex justify-end space-x-2 pt-2">
-              <button
-                type="button"
-                class="btn-secondary"
-                @click="showAddModal = false"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="btn-primary"
-                :disabled="saving"
-              >
-                {{ saving ? 'Adding...' : 'Add' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
->>>>>>> origin/frontend
     </Teleport>
 
     <!-- Edit Modal -->
     <Teleport to="body">
-<<<<<<< HEAD
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="opacity-0"
@@ -595,57 +428,5 @@ function handleFileInput(event: Event, target: 'add' | 'edit') {
       danger
       @confirm="executeDelete"
     />
-=======
-      <div
-        v-if="showEditModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        @click.self="showEditModal = false"
-      >
-        <div class="card w-full max-w-md mx-4">
-          <h2 class="text-lg font-bold mb-4">
-            Edit Student: {{ editingStudent?.first_name }} {{ editingStudent?.last_name }}
-          </h2>
-          <form
-            class="space-y-4"
-            @submit.prevent="updateStudent"
-          >
-            <div>
-              <label class="label">New Password (optional)</label>
-              <input
-                v-model="editForm.password"
-                type="password"
-                class="input"
-              >
-            </div>
-            <div>
-              <label class="label">New Profile Picture (optional)</label>
-              <input
-                type="file"
-                accept="image/*"
-                class="input"
-                @change="(e) => handleFileInput(e, 'edit')"
-              >
-            </div>
-            <div class="flex justify-end space-x-2 pt-2">
-              <button
-                type="button"
-                class="btn-secondary"
-                @click="showEditModal = false"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="btn-primary"
-                :disabled="saving"
-              >
-                {{ saving ? 'Saving...' : 'Save' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Teleport>
->>>>>>> origin/frontend
   </div>
 </template>
