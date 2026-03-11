@@ -59,20 +59,20 @@ function formatSession(session: Session): string {
   <div class="overflow-x-auto">
     <table class="w-full text-sm text-left">
       <thead>
-        <tr class="border-b border-gray-200 text-xs uppercase text-gray-500 tracking-wider">
-          <th class="py-3 px-4 font-semibold">
+        <tr class="border-b border-slate-100 dark:border-slate-700">
+          <th class="py-3.5 px-4 font-semibold text-xs uppercase text-slate-400 dark:text-slate-500 tracking-wider">
             Course Code
           </th>
-          <th class="py-3 px-4 font-semibold">
+          <th class="py-3.5 px-4 font-semibold text-xs uppercase text-slate-400 dark:text-slate-500 tracking-wider">
             Course Title
           </th>
           <th
             v-if="showInstructor"
-            class="py-3 px-4 font-semibold"
+            class="py-3.5 px-4 font-semibold text-xs uppercase text-slate-400 dark:text-slate-500 tracking-wider"
           >
             Instructor
           </th>
-          <th class="py-3 px-4 font-semibold">
+          <th class="py-3.5 px-4 font-semibold text-xs uppercase text-slate-400 dark:text-slate-500 tracking-wider">
             Schedule
           </th>
         </tr>
@@ -81,32 +81,32 @@ function formatSession(session: Session): string {
         <tr
           v-for="cls in classes"
           :key="cls.id"
-          class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+          class="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
         >
-          <td class="py-3 px-4 font-medium text-gray-900 whitespace-nowrap">
+          <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
             <component
               :is="linkBasePath ? resolveComponent('NuxtLink') : 'span'"
-              v-bind="linkBasePath ? { to: `${linkBasePath}/${cls.id}`, class: 'text-primary-600 hover:text-primary-800 hover:underline' } : {}"
+              v-bind="linkBasePath ? { to: `${linkBasePath}/${cls.id}`, class: 'text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 hover:underline decoration-primary-300 dark:decoration-primary-600 underline-offset-2' } : {}"
             >
               {{ cls.course_code ?? cls.code }} Section {{ cls.section }}
             </component>
           </td>
-          <td class="py-3 px-4 text-gray-700">
+          <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">
             {{ cls.course_name ?? cls.name }}
           </td>
           <td
             v-if="showInstructor"
-            class="py-3 px-4 text-gray-700 whitespace-nowrap"
+            class="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap"
           >
             <template v-if="cls.instructor_first_name || cls.instructor_last_name">
               {{ cls.instructor_first_name }} {{ cls.instructor_last_name }}
             </template>
             <span
               v-else
-              class="text-gray-400"
+              class="text-slate-300 dark:text-slate-600"
             >—</span>
           </td>
-          <td class="py-3 px-4 text-gray-600">
+          <td class="py-3.5 px-4 text-slate-500 dark:text-slate-400">
             <div
               v-if="cls.sessions && cls.sessions.length"
               class="space-y-0.5"
@@ -114,14 +114,14 @@ function formatSession(session: Session): string {
               <div
                 v-for="session in cls.sessions"
                 :key="session.id"
-                class="text-xs"
+                class="text-xs font-medium"
               >
                 {{ formatSession(session) }}
               </div>
             </div>
             <span
               v-else
-              class="text-gray-400 text-xs"
+              class="text-slate-300 dark:text-slate-600 text-xs"
             >No schedule</span>
           </td>
         </tr>

@@ -1,0 +1,1 @@
+import{R as u,n as a}from"./UPW1qNmq.js";import{u as r}from"./hEHcpBWN.js";import{u as s}from"./D_5Ue2cT.js";const d=u(()=>{const{isAuthenticated:t}=r(),{guard:e}=s();if(t.value&&e.value)return a(`/${e.value}`)});export{d as default};

@@ -1,0 +1,1 @@
+import{u as t,a as c}from"./UPW1qNmq.js";function u(o){return new URL(globalThis.location.href)}const n="sanctum.token.cookie",a={async get(o){return o.runWithContext(()=>{const e=t(n,{readonly:!0});return c(e.value)??void 0})},async set(o,e){await o.runWithContext(()=>{const s=u().protocol.startsWith("https"),r=t(n,{secure:s});r.value=e})}};export{a as cookieTokenStorage};

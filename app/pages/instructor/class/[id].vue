@@ -10,6 +10,7 @@ definePageMeta({
 const route = useRoute()
 const classId = route.params.id as string
 const { apiFetch } = useApi()
+const toast = useToast()
 
 const loading = ref(true)
 const dates = ref<string[]>([])
@@ -82,9 +83,10 @@ async function updateStatus(attendanceId: number, status: string) {
       method: 'PATCH',
       body: { id: attendanceId, status },
     })
+    toast.success(`Marked as ${status}.`)
   }
   catch {
-    // revert would be nice, but error is enough feedback
+    toast.error('Failed to update status.')
   }
   finally {
     saving.value[attendanceId] = false
@@ -97,21 +99,21 @@ async function updateStatus(attendanceId: number, status: string) {
     <div class="flex items-center space-x-2 mb-6">
       <NuxtLink
         to="/instructor"
-        class="text-gray-400 hover:text-gray-600"
+        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
       >
         <Icon
           name="heroicons:arrow-left"
           class="w-5 h-5"
         />
       </NuxtLink>
-      <h1 class="text-2xl font-bold">
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
         Class Attendance
       </h1>
     </div>
 
     <div
       v-if="error"
-      class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm"
+      class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-sm border border-rose-200/60 dark:border-rose-500/20"
     >
       {{ error }}
     </div>
@@ -175,46 +177,47 @@ async function updateStatus(attendanceId: number, status: string) {
 
             <table
               v-else
-              class="min-w-full divide-y divide-gray-200"
+              class="min-w-full divide-y divide-slate-200/60 dark:divide-slate-700"
             >
-              <thead class="bg-gray-50">
+              <thead>
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th class="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Student
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th class="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Email
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th class="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                 <tr
                   v-for="student in students"
                   :key="student.id"
+                  class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
                 >
                   <td class="px-6 py-4">
                     <div class="flex items-center">
                       <img
                         v-if="student.profile_picture"
                         :src="student.profile_picture"
-                        class="h-8 w-8 flex-shrink-0 rounded-full mr-3"
+                        class="h-8 w-8 flex-shrink-0 rounded-xl mr-3 object-cover"
                         :alt="student.first_name"
                       >
                       <div
                         v-else
-                        class="h-8 w-8 flex-shrink-0 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 text-sm font-medium overflow-hidden"
+                        class="h-8 w-8 flex-shrink-0 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-500/20 dark:to-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center mr-3 text-sm font-medium overflow-hidden"
                       >
                         {{ student.first_name?.[0] }}{{ student.last_name?.[0] }}
                       </div>
-                      <span class="text-sm font-medium text-gray-900">
+                      <span class="text-sm font-medium text-slate-900 dark:text-white">
                         {{ student.first_name }} {{ student.last_name }}
                       </span>
                     </div>
                   </td>
-                  <td class="px-6 py-4 text-sm text-gray-500">
+                  <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                     {{ student.email }}
                   </td>
                   <td class="px-6 py-4">
@@ -239,11 +242,11 @@ async function updateStatus(attendanceId: number, status: string) {
                           }"
                         >
                         <span
-                          class="ml-1 text-xs"
+                          class="ml-1 text-xs font-medium"
                           :class="{
-                            'text-green-600': s === 'Present',
-                            'text-yellow-600': s === 'Tardy',
-                            'text-red-600': s === 'Absent',
+                            'text-emerald-600 dark:text-emerald-400': s === 'Present',
+                            'text-amber-600 dark:text-amber-400': s === 'Tardy',
+                            'text-rose-600 dark:text-rose-400': s === 'Absent',
                           }"
                         >
                           {{ s }}
