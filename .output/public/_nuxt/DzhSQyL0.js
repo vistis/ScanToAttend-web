@@ -1,0 +1,1 @@
+import{R as a,n as e}from"./UPW1qNmq.js";import{u as r}from"./hEHcpBWN.js";import{u as s}from"./D_5Ue2cT.js";const d=a(()=>{const{isAuthenticated:u}=r(),{guard:t}=s();if(!u.value)return e("/login");if(t.value&&t.value!=="student")return e(`/${t.value}`)});export{d as default};

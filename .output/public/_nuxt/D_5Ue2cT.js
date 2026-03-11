@@ -1,0 +1,1 @@
+import{u as o}from"./hEHcpBWN.js";import{G as s}from"./UPW1qNmq.js";function m(){const{user:e}=o(),u=s(()=>{const r=e.value?.guard;return r||localStorage.getItem("user-guard")});function t(r){localStorage.setItem("user-guard",r)}function a(){localStorage.removeItem("user-guard")}return{guard:u,setGuard:t,clearGuard:a}}export{m as u};
