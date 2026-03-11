@@ -1,5 +1,5 @@
-/// <reference types="nuxt-auth-sanctum" />
 /// <reference types="@nuxtjs/tailwindcss" />
+/// <reference types="nuxt-auth-sanctum" />
 /// <reference types="@nuxt/icon" />
 /// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxt/telemetry" />

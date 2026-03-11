@@ -69,10 +69,17 @@ const schedule = computed(() => {
 
       <!-- Course list table -->
       <div class="mt-8">
+<<<<<<< HEAD
         <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
           Enrolled Courses
         </h2>
         <div class="card overflow-hidden p-0">
+=======
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+          Enrolled Courses
+        </h2>
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+>>>>>>> origin/frontend
           <CourseTable
             :classes="classes"
             show-instructor

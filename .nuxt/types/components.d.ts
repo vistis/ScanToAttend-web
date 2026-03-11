@@ -15,12 +15,14 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 interface _GlobalComponents {
   AppNavbar: typeof import("../../app/components/AppNavbar.vue")['default']
+  "ConfirmModal 2": typeof import("../../app/components/ConfirmModal 2.vue")['default']
   ConfirmModal: typeof import("../../app/components/ConfirmModal.vue")['default']
   CourseTable: typeof import("../../app/components/CourseTable.vue")['default']
   EmptyState: typeof import("../../app/components/EmptyState.vue")['default']
   LoadingState: typeof import("../../app/components/LoadingState.vue")['default']
   StatCard: typeof import("../../app/components/StatCard.vue")['default']
   StatusBadge: typeof import("../../app/components/StatusBadge.vue")['default']
+  "ToastContainer 2": typeof import("../../app/components/ToastContainer 2.vue")['default']
   ToastContainer: typeof import("../../app/components/ToastContainer.vue")['default']
   WeeklySchedule: typeof import("../../app/components/WeeklySchedule.vue")['default']
   NuxtWelcome: typeof import("../../node_modules/.pnpm/nuxt@3.21.1_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.30_cac@6.7.14_db0@0.3.4_ioredis_f47be8b5b16758c61b5da6aaf43b78bc/node_modules/nuxt/dist/app/components/welcome.vue")['default']
@@ -48,12 +50,14 @@ interface _GlobalComponents {
   Body: typeof import("../../node_modules/.pnpm/nuxt@3.21.1_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.30_cac@6.7.14_db0@0.3.4_ioredis_f47be8b5b16758c61b5da6aaf43b78bc/node_modules/nuxt/dist/head/runtime/components")['Body']
   NuxtIsland: typeof import("../../node_modules/.pnpm/nuxt@3.21.1_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.30_cac@6.7.14_db0@0.3.4_ioredis_f47be8b5b16758c61b5da6aaf43b78bc/node_modules/nuxt/dist/app/components/nuxt-island")['default']
   LazyAppNavbar: LazyComponent<typeof import("../../app/components/AppNavbar.vue")['default']>
+  "LazyConfirmModal 2": LazyComponent<typeof import("../../app/components/ConfirmModal 2.vue")['default']>
   LazyConfirmModal: LazyComponent<typeof import("../../app/components/ConfirmModal.vue")['default']>
   LazyCourseTable: LazyComponent<typeof import("../../app/components/CourseTable.vue")['default']>
   LazyEmptyState: LazyComponent<typeof import("../../app/components/EmptyState.vue")['default']>
   LazyLoadingState: LazyComponent<typeof import("../../app/components/LoadingState.vue")['default']>
   LazyStatCard: LazyComponent<typeof import("../../app/components/StatCard.vue")['default']>
   LazyStatusBadge: LazyComponent<typeof import("../../app/components/StatusBadge.vue")['default']>
+  "LazyToastContainer 2": LazyComponent<typeof import("../../app/components/ToastContainer 2.vue")['default']>
   LazyToastContainer: LazyComponent<typeof import("../../app/components/ToastContainer.vue")['default']>
   LazyWeeklySchedule: LazyComponent<typeof import("../../app/components/WeeklySchedule.vue")['default']>
   LazyNuxtWelcome: LazyComponent<typeof import("../../node_modules/.pnpm/nuxt@3.21.1_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.30_cac@6.7.14_db0@0.3.4_ioredis_f47be8b5b16758c61b5da6aaf43b78bc/node_modules/nuxt/dist/app/components/welcome.vue")['default']>

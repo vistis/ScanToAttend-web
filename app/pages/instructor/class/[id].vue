@@ -10,7 +10,10 @@ definePageMeta({
 const route = useRoute()
 const classId = route.params.id as string
 const { apiFetch } = useApi()
+<<<<<<< HEAD
 const toast = useToast()
+=======
+>>>>>>> origin/frontend
 
 const loading = ref(true)
 const dates = ref<string[]>([])
@@ -83,10 +86,16 @@ async function updateStatus(attendanceId: number, status: string) {
       method: 'PATCH',
       body: { id: attendanceId, status },
     })
+<<<<<<< HEAD
     toast.success(`Marked as ${status}.`)
   }
   catch {
     toast.error('Failed to update status.')
+=======
+  }
+  catch {
+    // revert would be nice, but error is enough feedback
+>>>>>>> origin/frontend
   }
   finally {
     saving.value[attendanceId] = false
@@ -99,21 +108,33 @@ async function updateStatus(attendanceId: number, status: string) {
     <div class="flex items-center space-x-2 mb-6">
       <NuxtLink
         to="/instructor"
+<<<<<<< HEAD
         class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+=======
+        class="text-gray-400 hover:text-gray-600"
+>>>>>>> origin/frontend
       >
         <Icon
           name="heroicons:arrow-left"
           class="w-5 h-5"
         />
       </NuxtLink>
+<<<<<<< HEAD
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+=======
+      <h1 class="text-2xl font-bold">
+>>>>>>> origin/frontend
         Class Attendance
       </h1>
     </div>
 
     <div
       v-if="error"
+<<<<<<< HEAD
       class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-sm border border-rose-200/60 dark:border-rose-500/20"
+=======
+      class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm"
+>>>>>>> origin/frontend
     >
       {{ error }}
     </div>
@@ -177,6 +198,7 @@ async function updateStatus(attendanceId: number, status: string) {
 
             <table
               v-else
+<<<<<<< HEAD
               class="min-w-full divide-y divide-slate-200/60 dark:divide-slate-700"
             >
               <thead>
@@ -188,36 +210,72 @@ async function updateStatus(attendanceId: number, status: string) {
                     Email
                   </th>
                   <th class="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+=======
+              class="min-w-full divide-y divide-gray-200"
+            >
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Student
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Email
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+>>>>>>> origin/frontend
                     Status
                   </th>
                 </tr>
               </thead>
+<<<<<<< HEAD
               <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
                 <tr
                   v-for="student in students"
                   :key="student.id"
                   class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
+=======
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr
+                  v-for="student in students"
+                  :key="student.id"
+>>>>>>> origin/frontend
                 >
                   <td class="px-6 py-4">
                     <div class="flex items-center">
                       <img
                         v-if="student.profile_picture"
                         :src="student.profile_picture"
+<<<<<<< HEAD
                         class="h-8 w-8 flex-shrink-0 rounded-xl mr-3 object-cover"
+=======
+                        class="h-8 w-8 flex-shrink-0 rounded-full mr-3"
+>>>>>>> origin/frontend
                         :alt="student.first_name"
                       >
                       <div
                         v-else
+<<<<<<< HEAD
                         class="h-8 w-8 flex-shrink-0 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-500/20 dark:to-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center mr-3 text-sm font-medium overflow-hidden"
                       >
                         {{ student.first_name?.[0] }}{{ student.last_name?.[0] }}
                       </div>
                       <span class="text-sm font-medium text-slate-900 dark:text-white">
+=======
+                        class="h-8 w-8 flex-shrink-0 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 text-sm font-medium overflow-hidden"
+                      >
+                        {{ student.first_name?.[0] }}{{ student.last_name?.[0] }}
+                      </div>
+                      <span class="text-sm font-medium text-gray-900">
+>>>>>>> origin/frontend
                         {{ student.first_name }} {{ student.last_name }}
                       </span>
                     </div>
                   </td>
+<<<<<<< HEAD
                   <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+=======
+                  <td class="px-6 py-4 text-sm text-gray-500">
+>>>>>>> origin/frontend
                     {{ student.email }}
                   </td>
                   <td class="px-6 py-4">
@@ -242,11 +300,19 @@ async function updateStatus(attendanceId: number, status: string) {
                           }"
                         >
                         <span
+<<<<<<< HEAD
                           class="ml-1 text-xs font-medium"
                           :class="{
                             'text-emerald-600 dark:text-emerald-400': s === 'Present',
                             'text-amber-600 dark:text-amber-400': s === 'Tardy',
                             'text-rose-600 dark:text-rose-400': s === 'Absent',
+=======
+                          class="ml-1 text-xs"
+                          :class="{
+                            'text-green-600': s === 'Present',
+                            'text-yellow-600': s === 'Tardy',
+                            'text-red-600': s === 'Absent',
+>>>>>>> origin/frontend
                           }"
                         >
                           {{ s }}

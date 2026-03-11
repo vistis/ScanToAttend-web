@@ -49,6 +49,7 @@ const todaySchedule = computed(() => {
 
 <template>
   <div>
+<<<<<<< HEAD
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
         Dashboard
@@ -58,13 +59,20 @@ const todaySchedule = computed(() => {
       </p>
     </div>
 
+=======
+>>>>>>> origin/frontend
     <LoadingState :loading="loading">
       <div class="flex flex-col lg:flex-row gap-6">
         <!-- Left: Course List -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between mb-4">
+<<<<<<< HEAD
             <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
               Courses
+=======
+            <h2 class="text-xl font-bold text-gray-800">
+              Course
+>>>>>>> origin/frontend
             </h2>
           </div>
 
@@ -81,16 +89,28 @@ const todaySchedule = computed(() => {
               v-for="cls in classes"
               :key="cls.id"
               :to="`/student/class/${cls.id}`"
+<<<<<<< HEAD
               class="group block card p-4 hover:shadow-soft-lg transition-all duration-200"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1 min-w-0">
                   <h3 class="font-semibold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+=======
+              class="block bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-gray-900">
+>>>>>>> origin/frontend
                     {{ cls.course_code ?? cls.code }} Section {{ cls.section }} - {{ cls.course_name ?? cls.name }}
                   </h3>
                   <p
                     v-if="cls.instructor_first_name || cls.instructor_last_name"
+<<<<<<< HEAD
                     class="text-sm text-slate-500 dark:text-slate-400 mt-1"
+=======
+                    class="text-sm text-gray-500 mt-1"
+>>>>>>> origin/frontend
                   >
                     {{ cls.instructor_first_name }} {{ cls.instructor_last_name }}
                   </p>
@@ -101,7 +121,11 @@ const todaySchedule = computed(() => {
                     <p
                       v-for="session in cls.sessions"
                       :key="session.id"
+<<<<<<< HEAD
                       class="text-xs text-slate-500 dark:text-slate-400"
+=======
+                      class="text-xs text-gray-500"
+>>>>>>> origin/frontend
                     >
                       ({{ session.day.slice(0, 3) }}) {{ session.start_at?.slice(0, 5) }} - {{ session.end_at?.slice(0, 5) }}
                     </p>
@@ -109,7 +133,11 @@ const todaySchedule = computed(() => {
                 </div>
                 <Icon
                   name="heroicons:chevron-right"
+<<<<<<< HEAD
                   class="w-5 h-5 text-slate-400 group-hover:text-primary-500 flex-shrink-0 mt-1 transition-colors"
+=======
+                  class="w-5 h-5 text-gray-400 flex-shrink-0 mt-1"
+>>>>>>> origin/frontend
                 />
               </div>
             </NuxtLink>
@@ -119,12 +147,20 @@ const todaySchedule = computed(() => {
         <!-- Right: Today's Schedule -->
         <div class="lg:w-80 flex-shrink-0">
           <div class="flex items-center justify-between mb-4">
+<<<<<<< HEAD
             <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-200">
+=======
+            <h2 class="text-xl font-bold text-gray-800">
+>>>>>>> origin/frontend
               Today's Schedule
             </h2>
             <NuxtLink
               to="/student/schedule"
+<<<<<<< HEAD
               class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 bg-primary-50 dark:bg-primary-500/10 hover:bg-primary-100 dark:hover:bg-primary-500/20 px-3 py-1.5 rounded-xl transition-colors"
+=======
+              class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"
+>>>>>>> origin/frontend
             >
               <Icon
                 name="heroicons:calendar-days"
@@ -134,21 +170,33 @@ const todaySchedule = computed(() => {
             </NuxtLink>
           </div>
 
+<<<<<<< HEAD
           <div class="card p-4">
             <div
               v-if="todaySchedule.length === 0"
               class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm"
+=======
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div
+              v-if="todaySchedule.length === 0"
+              class="text-center py-8 text-gray-400 text-sm"
+>>>>>>> origin/frontend
             >
               Your schedule is empty today
             </div>
 
             <div
               v-else
+<<<<<<< HEAD
               class="space-y-4"
+=======
+              class="space-y-3"
+>>>>>>> origin/frontend
             >
               <div
                 v-for="cls in todaySchedule"
                 :key="cls.id"
+<<<<<<< HEAD
                 class="p-3 rounded-xl bg-slate-50 dark:bg-surface-850"
               >
                 <p class="font-medium text-slate-900 dark:text-white text-sm">
@@ -166,6 +214,24 @@ const todaySchedule = computed(() => {
                     <Icon
                       name="heroicons:clock"
                       class="w-3.5 h-3.5 inline mr-0.5"
+=======
+              >
+                <p class="font-medium text-gray-900 text-sm">
+                  {{ cls.course_code ?? cls.code }} Section {{ cls.section }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ cls.course_name ?? cls.name }}
+                </p>
+                <div class="mt-1 space-y-0.5">
+                  <p
+                    v-for="session in cls.todaySessions"
+                    :key="session.id"
+                    class="text-xs text-gray-600"
+                  >
+                    <Icon
+                      name="heroicons:clock"
+                      class="w-3 h-3 inline mr-0.5"
+>>>>>>> origin/frontend
                     />
                     {{ session.start_at?.slice(0, 5) }} - {{ session.end_at?.slice(0, 5) }}
                   </p>

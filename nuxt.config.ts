@@ -21,13 +21,18 @@ export default defineNuxtConfig({
   },
 
   sanctum: {
+<<<<<<< HEAD
     baseUrl: 'http://localhost',
+=======
+    baseUrl: 'http://localhost:8000',
+>>>>>>> origin/frontend
     mode: 'cookie',
     userStateKey: 'sanctum.user.identity',
     redirectIfAuthenticated: false,
     redirectIfUnauthenticated: false,
     endpoints: {
       csrf: '/sanctum/csrf-cookie',
+<<<<<<< HEAD
       login: '/api/login',
       logout: '/api/logout',
       user: '/api/user',
@@ -36,11 +41,25 @@ export default defineNuxtConfig({
       cookie: 'XSRF-TOKEN',
       header: 'X-XSRF-TOKEN',
     },
+=======
+      login: '/login',
+      logout: '/logout',
+      user: '/api/user',
+    },
+    // csrf: {
+    //   cookie: 'XSRF-TOKEN',
+    //   header: 'X-XSRF-TOKEN',
+    // },
+>>>>>>> origin/frontend
   },
 
   runtimeConfig: {
     public: {
+<<<<<<< HEAD
       apiBase: 'http://localhost/api',
+=======
+      apiBase: 'http://localhost:8000/api',
+>>>>>>> origin/frontend
     },
   },
 })

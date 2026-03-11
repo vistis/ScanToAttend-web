@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "scan-to-attend-nuxt",
+=======
+  "name": "Scan2Attend",
+>>>>>>> origin/frontend
   "private": true,
   "type": "module",
   "scripts": {
