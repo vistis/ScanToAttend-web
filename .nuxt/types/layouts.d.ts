@@ -6,9 +6,9 @@ type ComponentProps<T> = T extends new(...args: any) => { $props: infer P } ? No
 
 declare module 'nuxt/app' {
   interface NuxtLayouts {
-    auth: ComponentProps<typeof import("/Users/long/Library/Mobile Documents/com~apple~CloudDocs/Developer/Paragon IU/Semester V/CS 397/Scan2Attend/ScanToAttend-nuxt/app/layouts/auth.vue").default>,
-    dashboard: ComponentProps<typeof import("/Users/long/Library/Mobile Documents/com~apple~CloudDocs/Developer/Paragon IU/Semester V/CS 397/Scan2Attend/ScanToAttend-nuxt/app/layouts/dashboard.vue").default>,
-    default: ComponentProps<typeof import("/Users/long/Library/Mobile Documents/com~apple~CloudDocs/Developer/Paragon IU/Semester V/CS 397/Scan2Attend/ScanToAttend-nuxt/app/layouts/default.vue").default>,
+    auth: ComponentProps<typeof import("/home/vis/Documents/ParagonU/Semester V/CS 397 - Internet of Everything/Final Project/frontend/app/layouts/auth.vue").default>,
+    dashboard: ComponentProps<typeof import("/home/vis/Documents/ParagonU/Semester V/CS 397 - Internet of Everything/Final Project/frontend/app/layouts/dashboard.vue").default>,
+    default: ComponentProps<typeof import("/home/vis/Documents/ParagonU/Semester V/CS 397 - Internet of Everything/Final Project/frontend/app/layouts/default.vue").default>,
 }
   export type LayoutKey = keyof NuxtLayouts extends never ? string : keyof NuxtLayouts
   interface PageMeta {

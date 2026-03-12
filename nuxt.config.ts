@@ -21,15 +21,15 @@ export default defineNuxtConfig({
   },
 
   sanctum: {
-    baseUrl: 'http://localhost',
+    baseUrl: 'http://localhost:8000',
     mode: 'cookie',
     userStateKey: 'sanctum.user.identity',
     redirectIfAuthenticated: false,
     redirectIfUnauthenticated: false,
     endpoints: {
       csrf: '/sanctum/csrf-cookie',
-      login: '/api/login',
-      logout: '/api/logout',
+      login: '/login',
+      logout: '/logout',
       user: '/api/user',
     },
     csrf: {
