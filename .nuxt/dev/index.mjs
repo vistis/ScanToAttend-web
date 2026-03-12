@@ -843,7 +843,7 @@ const _inlineRuntimeConfig = {
     }
   },
   "public": {
-    "apiBase": "http://localhost/api",
+    "apiBase": "http://localhost:8000/api",
     "sanctum": {
       "baseUrl": "http://localhost:8000",
       "mode": "cookie",
