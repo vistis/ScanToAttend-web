@@ -8,6 +8,8 @@ The backend automatically checks for the session the student is attending when t
 
 The frontend provides a human-friendly way to view attendance records and manage the system.
 
+ESP code can be found at [longmanngithub/Scan2Attend-esp](https://github.com/longmanngithub/Scan2Attend-esp)
+
 ## Technical Information
 
 ### Backend
